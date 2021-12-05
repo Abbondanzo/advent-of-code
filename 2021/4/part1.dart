@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import '../utils.dart';
 
@@ -19,7 +21,7 @@ class BingoBoard extends Equatable {
       assert(rowNumbers.length == 5);
       return rowNumbers;
     }).toList();
-    final markedNumbers = List.filled(5, List.filled(5, false));
+    final markedNumbers = List.generate(5, (_) => List.filled(5, false));
     return BingoBoard(numbers, markedNumbers);
   }
 
@@ -110,21 +112,15 @@ void main() async {
   final calls = parseCalls(lineList);
   final boards = parseBoards(lineList);
 
-  boards.forEach(print);
-
   for (var i = 0; i < calls.length; i++) {
-    final call = calls[i];
-    BingoBoard? winner = null;
+    int call = calls[i];
     boards.forEach((board) {
       if (board.markNumber(call)) {
-        winner = board;
+        final finalScore = board.unmarkedNumberSum() * call;
+        print(board.toString());
+        print('The final score is ${finalScore}');
+        exit(0);
       }
     });
-    if (winner != null) {
-      final finalScore = winner!.unmarkedNumberSum();
-      print(winner!.toString());
-      print('The final score is ${finalScore * call}');
-      return;
-    }
   }
 }
