@@ -26,7 +26,7 @@ class BingoBoard extends Equatable {
   }
 
   bool markNumber(int number) {
-    var causedWin = false;
+    bool causedWin = false;
     _numbers.asMap().forEach((rowIndex, numberRow) {
       numberRow.asMap().forEach((colIndex, boardNumber) {
         if (boardNumber == number) {
@@ -57,6 +57,11 @@ class BingoBoard extends Equatable {
 
   @override
   List<Object?> get props => [_numbers, _markedNumbers];
+
+  List<int> get numbers => _numbers.fold([], (previousValue, element) {
+        previousValue.addAll(element);
+        return previousValue;
+      });
 
   @override
   String toString() {
