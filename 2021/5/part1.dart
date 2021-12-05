@@ -51,6 +51,7 @@ class Line {
     else {
       List<int> xCoords = _inclusiveRange(a.x, b.x);
       List<int> yCoords = _inclusiveRange(a.y, b.y);
+      assert(xCoords.length == yCoords.length);
       return xCoords
           .asMap()
           .map((index, xCoord) {
