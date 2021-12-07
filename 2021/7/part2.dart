@@ -45,9 +45,15 @@ void main() async {
   final crabPositions = await parseInput();
   crabPositions.sort((a, b) => a.compareTo(b));
 
-  print('Brute force');
+  Stopwatch stopwatch = new Stopwatch()..start();
   bruteForce(crabPositions);
+  print('Brute force ${stopwatch.elapsedMicroseconds} us');
 
-  print('Fast');
+  print('');
+  stopwatch.stop();
+  stopwatch.reset();
+
+  stopwatch.start();
   fast(crabPositions);
+  print('Fast ${stopwatch.elapsedMicroseconds} us');
 }
