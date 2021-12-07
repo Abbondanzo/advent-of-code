@@ -17,15 +17,12 @@ int getFuelCost(List<int> input, int position) {
   });
 }
 
-void main() async {
-  final crabPositions = await parseInput();
-  crabPositions.sort((a, b) => a.compareTo(b));
-  final maxPosition = crabPositions[crabPositions.length - 1];
-
+void bruteForce(List<int> input) {
+  final maxPosition = input[input.length - 1];
   int? cheapestUsage = null;
   int cheapestPosition = 0;
   for (int position = 0; position <= maxPosition; position++) {
-    final fuelUsage = getFuelCost(crabPositions, position);
+    final fuelUsage = getFuelCost(input, position);
     if (cheapestUsage == null || fuelUsage < cheapestUsage) {
       cheapestUsage = fuelUsage;
       cheapestPosition = position;
@@ -34,4 +31,22 @@ void main() async {
 
   // How much fuel must they spend to align to that position?
   print('Crabs spend $cheapestUsage fuel to reach position $cheapestPosition');
+}
+
+void fast(List<int> input) {
+  final position = median(input);
+  final cheapestUsage = getFuelCost(input, position);
+  // How much fuel must they spend to align to that position?
+  print('Crabs spend $cheapestUsage fuel to reach position $position');
+}
+
+void main() async {
+  final crabPositions = await parseInput();
+  crabPositions.sort((a, b) => a.compareTo(b));
+
+  print('Brute force');
+  bruteForce(crabPositions);
+
+  print('Fast');
+  fast(crabPositions);
 }

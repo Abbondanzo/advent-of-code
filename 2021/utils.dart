@@ -15,3 +15,13 @@ int flipBits(int n, int k) {
   int mask = (1 << k) - 1;
   return ~n & mask;
 }
+
+int median(List<int> input) {
+  return input[input.length ~/ 2];
+}
+
+int mean(List<int> input) {
+  int total =
+      input.fold(0, (previousValue, element) => previousValue + element);
+  return total ~/ input.length;
+}
