@@ -59,7 +59,7 @@ List<Coord> flash(List<List<int>> input, Coord coord) {
   return shouldReflash;
 }
 
-int runAfterStep(List<List<int>> input) {
+int _runAfterStep(List<List<int>> input) {
   Queue<Coord> toFlash = Queue();
   input.asMap().forEach((rowIdx, row) {
     row.asMap().forEach((colIdx, value) {
@@ -100,7 +100,7 @@ void main() async {
   int flashCount = 0;
   List.generate(stepCount, (_) {
     inputLines = step(inputLines);
-    flashCount += runAfterStep(inputLines);
+    flashCount += _runAfterStep(inputLines);
     printBoard(inputLines);
   });
 
