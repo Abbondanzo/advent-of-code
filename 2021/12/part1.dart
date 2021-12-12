@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import '../utils.dart';
 
 typedef Input = Map<String, List<String>>;
