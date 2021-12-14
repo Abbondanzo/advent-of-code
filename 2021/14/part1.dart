@@ -8,15 +8,16 @@ class Input {
 
   String runSteps(int numSteps) {
     String toModify = this.polyTemplate;
-    List.generate(numSteps, (_) {
-      String stepOutput = toModify[0];
+    List.generate(numSteps, (index) {
+      print('Step ${index + 1}/$numSteps (len ${toModify.length})');
+      List<String> stepOutput = [toModify[0]];
       for (int i = 0; i < toModify.length - 1; i++) {
         final pairing = toModify.substring(i, i + 2);
         final toInsert = this.insertionRules[pairing]!;
-        stepOutput += toInsert;
-        stepOutput += pairing[1];
+        stepOutput.add(toInsert);
+        stepOutput.add(pairing[1]);
       }
-      toModify = stepOutput;
+      toModify = stepOutput.join('');
     });
     return toModify;
   }
