@@ -1,44 +1,4 @@
-import 'dart:collection';
-
-import '../utils.dart';
 import './part1.dart';
-
-// extension FirstWhereOrNullExtension<E> on Iterable<E> {
-//   E? firstWhereOrNull(bool Function(E) test) {
-//     for (E element in this) {
-//       if (test(element)) return element;
-//     }
-//     return null;
-//   }
-// }
-
-// final additionalInsertionRules = SplayTreeMap<String, String>();
-
-final Map<String, String> savedPolymers = Map();
-
-String expandPolymer(Input input, String startPolymer) {
-  if (savedPolymers[startPolymer] != null) {
-    return savedPolymers[startPolymer]!;
-  }
-  if (startPolymer.length == 1) {
-    return startPolymer;
-  }
-  if (startPolymer.length == 2) {
-    return startPolymer[0] +
-        input.insertionRules[startPolymer]! +
-        startPolymer[1];
-  }
-  final middleIndex = startPolymer.length ~/ 2;
-  final leftSide = startPolymer.substring(0, middleIndex);
-  final rightSide = startPolymer.substring(middleIndex);
-  final middle = leftSide[leftSide.length - 1] + rightSide[0];
-
-  final combinedResult = expandPolymer(input, leftSide) +
-      input.insertionRules[middle]! +
-      expandPolymer(input, rightSide);
-  savedPolymers[startPolymer] = combinedResult;
-  return combinedResult;
-}
 
 extension Part2 on Input {
   Map<String, BigInt> runStepsV2(int numSteps) {
