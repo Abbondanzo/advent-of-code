@@ -71,16 +71,6 @@ Future<Input> parseInput(String path) async {
   return output;
 }
 
-void dijkstra(Input input) {
-  final Map<Coord, int> dist = Map();
-  final Map<Coord, Coord> prev = Map();
-
-  /// Set the distance to each vertex as "infinity"
-  input.forEach((row) {
-    row.forEach((coord) {});
-  });
-}
-
 int manhattenDistance(Input input, Coord coord) {
   final largestRowIndex = input.length - 1;
   final largestColIndex = input[0].length - 1;
