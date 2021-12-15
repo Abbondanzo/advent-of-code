@@ -25,5 +25,7 @@ Input expandInput(Input input) {
 void main() async {
   final input = await parseInput('15/input');
   final expandedInput = expandInput(input);
+  Stopwatch stopwatch = new Stopwatch()..start();
   astar(expandedInput);
+  print('executed in ${stopwatch.elapsed.inMilliseconds}ms');
 }
