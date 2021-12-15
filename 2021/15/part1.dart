@@ -85,21 +85,21 @@ extension PriorityMap on Map<Coord, int> {
   }
 }
 
-Coord lowestFScore(List<Coord> open, Map<Coord, int> fScore) {
-  Coord? lowestScoring;
-  open.forEach((element) {
-    if (lowestScoring == null ||
-        fScore.containsKey(element) &&
-            fScore[element]! < fScore[lowestScoring]!) {
-      lowestScoring = element;
+int getInsertionIndex(
+    List<Coord> open, Map<Coord, int> fScore, Coord newCoord) {
+  final newFScore = fScore[newCoord]!;
+  for (var i = 0; i < open.length; i++) {
+    if (fScore[open[i]]! > newFScore) {
+      return i;
     }
-  });
-  return lowestScoring ?? open.first;
+  }
+  return open.length;
 }
 
 void astar(Input input) {
   final starterCoord = input[0][0];
 
+  /// A list of unexplored coordinates sorted by fScore from lowest to highest
   final List<Coord> open = [starterCoord];
 
   /// For a Coord key, the value is the cheapest Coord preceding it
@@ -114,7 +114,7 @@ void astar(Input input) {
   fScore[starterCoord] = manhattenDistance(input, starterCoord);
 
   while (open.isNotEmpty) {
-    final smallestCoord = lowestFScore(open, fScore);
+    final smallestCoord = open.first;
     if (smallestCoord.isGoal(input)) {
       int pathRisk = 0;
       Coord current = smallestCoord;
@@ -134,7 +134,8 @@ void astar(Input input) {
         gScore[neighbor] = updatedGScore;
         fScore[neighbor] = updatedGScore + manhattenDistance(input, neighbor);
         if (!open.contains(neighbor)) {
-          open.add(neighbor);
+          final insertionIndex = getInsertionIndex(open, fScore, neighbor);
+          open.insert(insertionIndex, neighbor);
         }
       }
     });
