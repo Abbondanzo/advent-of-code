@@ -218,6 +218,8 @@ int addAllVersionNumbers(List<Packet> packets) {
 
 void main() async {
   final input = await parseInput('16/input');
+  Stopwatch stopwatch = new Stopwatch()..start();
   final packets = processPacket(input);
   print(addAllVersionNumbers(packets));
+  print('executed in ${stopwatch.elapsed.inMilliseconds}ms');
 }
