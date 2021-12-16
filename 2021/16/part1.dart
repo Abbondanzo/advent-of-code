@@ -3,17 +3,23 @@ import 'dart:math';
 
 import '../utils.dart';
 
-class Packet {
+abstract class Packet {
   final int packetVersion;
   final int packetTypeID;
 
   Packet(this.packetVersion, this.packetTypeID);
+
+  int getValue();
 }
 
 class LiteralPacket extends Packet {
   final int literalValue;
 
   LiteralPacket(int packetVersion, this.literalValue) : super(packetVersion, 4);
+
+  int getValue() {
+    return literalValue;
+  }
 }
 
 class OperatorPacket extends Packet {
@@ -21,6 +27,55 @@ class OperatorPacket extends Packet {
 
   OperatorPacket(int packetVersion, int packetTypeID, this.subpackets)
       : super(packetVersion, packetTypeID);
+
+  int getValue() {
+    switch (packetTypeID) {
+
+      /// sum
+      case 0:
+        return subpackets.fold(0, (acc, sb) => acc + sb.getValue());
+
+      /// product
+      case 1:
+        return subpackets.fold(1, (acc, sb) => acc * sb.getValue());
+
+      /// minimum
+      case 2:
+        return subpackets.fold<int?>(null, (previousValue, element) {
+              return previousValue == null
+                  ? element.getValue()
+                  : min(previousValue, element.getValue());
+            }) ??
+            0;
+
+      /// maximum
+      case 3:
+        return subpackets.fold<int?>(null, (previousValue, element) {
+              return previousValue == null
+                  ? element.getValue()
+                  : max(previousValue, element.getValue());
+            }) ??
+            0;
+
+      /// greater than
+      case 5:
+        assert(subpackets.length == 2);
+        return subpackets[0].getValue() > subpackets[1].getValue() ? 1 : 0;
+
+      /// less than
+      case 6:
+        assert(subpackets.length == 2);
+        return subpackets[0].getValue() < subpackets[1].getValue() ? 1 : 0;
+
+      /// equal to
+      case 7:
+        assert(subpackets.length == 2);
+        return subpackets[0].getValue() == subpackets[1].getValue() ? 1 : 0;
+
+      default:
+        throw Error();
+    }
+  }
 }
 
 class InlineOperatorPacket extends OperatorPacket {
