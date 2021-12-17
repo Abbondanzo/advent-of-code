@@ -36,4 +36,21 @@ class Coordinate extends Equatable {
 
   @override
   List<Object?> get props => [x, y];
+
+  @override
+  String toString() {
+    return '($x, $y)';
+  }
+}
+
+class Pair<A, B> {
+  final A first;
+  final B second;
+
+  Pair(this.first, this.second);
+
+  @override
+  String toString() {
+    return 'Pair($first, $second)';
+  }
 }
