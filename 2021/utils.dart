@@ -54,3 +54,27 @@ class Pair<A, B> {
     return 'Pair($first, $second)';
   }
 }
+
+/// Generate a list of numbers for iterative purposes.
+///
+/// If `end` is not specified, the range starts at 0 and contains `count`
+/// elements.
+///
+/// ```dart
+/// range(3); // [0, 1, 2]
+/// ```
+///
+/// If `end` is specified, the range starts at `count` and ends at one value
+/// less than `end`.
+///
+/// ```dart
+/// range(1, 5); // [1, 2, 3, 4]
+/// ```
+List<int> range(int count, [int? end = null]) {
+  if (end != null) {
+    final start = count;
+    print(end - start);
+    return List.generate(end - start, (index) => start + index);
+  }
+  return List.generate(count, (index) => index);
+}
