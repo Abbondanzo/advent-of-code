@@ -81,8 +81,10 @@ void main() async {
   int highestY = 0;
   final maxXVelocity = targetArea.x2 + 1;
   final maxYVelocity = targetArea.y1.abs() + 1;
-  List.generate(maxXVelocity, (velocityX) {
-    List.generate(maxYVelocity, (velocityY) {
+
+  /// Generate and test random trajectories within boundary
+  for (final velocityX in range(maxXVelocity)) {
+    for (final velocityY in range(maxYVelocity)) {
       final simResult = runSimulation(targetArea, velocityX, velocityY);
       if (simResult.first) {
         // print(Coordinate(velocityX, velocityY));
@@ -90,8 +92,8 @@ void main() async {
           highestY = simResult.second;
         }
       }
-    });
-  });
+    }
+  }
 
   /// What is the highest y position it reaches on this trajectory?
   print(highestY);

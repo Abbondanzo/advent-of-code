@@ -73,7 +73,6 @@ class Pair<A, B> {
 List<int> range(int count, [int? end = null]) {
   if (end != null) {
     final start = count;
-    print(end - start);
     return List.generate(end - start, (index) => start + index);
   }
   return List.generate(count, (index) => index);
