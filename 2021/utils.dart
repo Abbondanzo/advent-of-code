@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
 
+import 'package:equatable/equatable.dart';
+
 Stream<String> readFile(String fileName) {
   final file = File(fileName);
   Stream<String> lines = file
@@ -24,4 +26,14 @@ int mean(List<int> input) {
   int total =
       input.fold(0, (previousValue, element) => previousValue + element);
   return total ~/ input.length;
+}
+
+class Coordinate extends Equatable {
+  final int x;
+  final int y;
+
+  Coordinate(this.x, this.y);
+
+  @override
+  List<Object?> get props => [x, y];
 }
