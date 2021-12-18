@@ -44,6 +44,12 @@ const isFirst = (input, index) => {
 const reduce = (input) => {
   const newNums = [];
   let shouldRunAgain = false;
+  const addRest = (index) => {
+    while (index < input.length) {
+      newNums.push(input[index]);
+      index++;
+    }
+  };
   for (let index = 0; index < input.length; index++) {
     // Explode on first element
     if (shouldExplode(input, index)) {
@@ -62,6 +68,9 @@ const reduce = (input) => {
         newNums.push([nextNum + secondValue, nextDepth]);
       }
       index += 2;
+
+      addRest(index + 1);
+      break;
     } else if (shouldSplit(input, index)) {
       shouldRunAgain = true;
       const depth = input[index][1];
@@ -69,6 +78,9 @@ const reduce = (input) => {
       const right = Math.ceil(input[index][0] / 2);
       newNums.push([left, depth + 1]);
       newNums.push([right, depth + 1]);
+
+      addRest(index + 1);
+      break;
     } else {
       newNums.push(input[index]);
     }
