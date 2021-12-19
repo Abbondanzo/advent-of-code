@@ -18,10 +18,62 @@ class Coord3D extends Equatable {
   }
 }
 
+class Displacement extends Equatable {
+  final int coordIdx;
+  final int displacement;
+
+  Displacement(this.coordIdx, this.displacement);
+
+  @override
+  List<Object?> get props => [displacement];
+
+  @override
+  String toString() {
+    return 'Displacement($displacement, beaconIdx: $coordIdx)';
+  }
+}
+
 class Scanner {
   final List<Coord3D> beacons;
+  final Set<Displacement> xDisplacements;
+  final Set<Displacement> yDisplacements;
+  final Set<Displacement> zDisplacements;
 
-  Scanner(this.beacons);
+  Scanner(this.beacons)
+      : xDisplacements = _getDisplacements(_getXCoords(beacons)),
+        yDisplacements = _getDisplacements(_getYCoords(beacons)),
+        zDisplacements = _getDisplacements(_getZCoords(beacons));
+
+  static List<int> _getXCoords(List<Coord3D> coords) {
+    return coords.map((coord) => coord.x).toList();
+  }
+
+  static List<int> _getYCoords(List<Coord3D> coords) {
+    return coords.map((coord) => coord.y).toList();
+  }
+
+  static List<int> _getZCoords(List<Coord3D> coords) {
+    return coords.map((coord) => coord.z).toList();
+  }
+
+  static Set<Displacement> _getDisplacements(List<int> values) {
+    final indexedValues = values.asMap().entries.toList();
+    indexedValues.sort(((a, b) => a.value.compareTo(b.value)));
+    final startPos = indexedValues.first.value;
+    final offsetValues = indexedValues.map((indexedValue) {
+      return MapEntry(indexedValue.key, (startPos - indexedValue.value).abs());
+    });
+    MapEntry<int, int>? previous;
+    final List<Displacement> nextDisplacements = [];
+    offsetValues.forEach((offset) {
+      if (previous != null) {
+        nextDisplacements
+            .add(Displacement(offset.key, offset.value - previous!.value));
+      }
+      previous = offset;
+    });
+    return nextDisplacements.toSet();
+  }
 }
 
 typedef Input = List<Scanner>;
