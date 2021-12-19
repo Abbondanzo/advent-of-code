@@ -19,8 +19,6 @@ const flattenTuple = (tuple, depth) => {
 };
 
 const lines = fileInput.split("\n").map((line) => {
-  const nums = [];
-  let depth = 0;
   const tuples = JSON.parse(line);
   return flattenTuple(tuples, 0);
 });
@@ -45,10 +43,7 @@ const reduce = (input) => {
   const newNums = [];
   let shouldRunAgain = false;
   const addRest = (index) => {
-    while (index < input.length) {
-      newNums.push(input[index]);
-      index++;
-    }
+    newNums.push(...input.slice(index));
   };
   for (let index = 0; index < input.length; index++) {
     // Explode on first element
@@ -89,15 +84,57 @@ const reduce = (input) => {
   return newNums;
 };
 
-const add = (tupleA, tupleB) => {
+const add = (inputA, inputB) => {
   return [
-    tupleA.map(([value, depth]) => [value, depth + 1]),
-    tupleB.map(([value, depth]) => [value, depth + 1]),
+    inputA.map(([value, depth]) => [value, depth + 1]),
+    inputB.map(([value, depth]) => [value, depth + 1]),
   ];
+};
+
+const inputToTuple = (input) => {
+  const tupleTime = [];
+
+  for (let index = 0; index < input.length; index++) {
+    const [value, depth] = input[index];
+    // let prevTuple;
+    // let curTuple = tupleTime;
+    // let curDepth = depth;
+    // while (curDepth > 0) {
+    //   if (curTuple.length === 0) {
+    //     curTuple.push([]);
+    //     prevTuple = curTuple;
+    //     curTuple = curTuple[0];
+    //   } else {
+    //     prevTuple = curTuple;
+    //     curTuple = curTuple[curTuple.length - 1];
+    //   }
+    //   curDepth--;
+    // }
+    // if (curTuple.length === 0) {
+    //   curTuple[0] = value;
+    // } else if (curTuple.length === 1) {
+    //   curTuple[1] = value;
+    // } else if (prevTuple.length === 1) {
+    //   prevTuple[1] = [value];
+    //   //   prevTuple[prevTuple.length - 1] = value;
+    // } else {
+    //   console.log("shit", JSON.stringify(tupleTime));
+    // }
+  }
+  return tupleTime;
+};
+
+const checkMagnitude = (tuple) => {
+  const [left, right] = tuple;
+  const leftValue = Array.isArray(left) ? checkMagnitude(left) : left;
+  const rightValue = Array.isArray(right) ? checkMagnitude(right) : right;
+  return 3 * leftValue + 2 * rightValue;
 };
 
 console.log(lines[0]);
 console.log(reduce(lines[0]));
+
+console.log(checkMagnitude(inputToTuple(lines[0])));
 
 // const reduceHelper = (tuple, depth) => {
 //   // Explode pairs
