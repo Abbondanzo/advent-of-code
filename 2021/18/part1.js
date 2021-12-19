@@ -1,127 +1,131 @@
-const fs = require("fs");
-const path = require("path");
-const fileInput = fs.readFileSync(path.join(__dirname, "demo")).toString();
+// ====================================
+// Utilities
+// ====================================
 
-const flattenTuple = (tuple, depth) => {
-  const [left, right] = tuple;
-  const flattened = [];
-  if (Array.isArray(left)) {
-    flattened.push(...flattenTuple(left, depth + 1));
-  } else {
-    flattened.push([left, depth]);
-  }
-  if (Array.isArray(right)) {
-    flattened.push(...flattenTuple(right, depth + 1));
-  } else {
-    flattened.push([right, depth]);
-  }
-  return flattened;
-};
-
-const lines = fileInput.split("\n").map((line) => {
-  const tuples = JSON.parse(line);
-  return flattenTuple(tuples, 0);
-});
-
-const shouldExplode = (input, index) => {
-  return input[index][1] >= 4;
-};
-
-const shouldSplit = (input, index) => {
-  return input[index][0] >= 10;
-};
-
-const isFirst = (input, index) => {
-  if (index == 0) {
-    return true;
-  } else {
-    return input[index - 1][1] < input[index][1];
-  }
-};
-
-const reduce = (input) => {
-  const newNums = [];
-  let shouldRunAgain = false;
-  const addRest = (index) => {
-    newNums.push(...input.slice(index));
-  };
-  for (let index = 0; index < input.length; index++) {
-    // Explode on first element
-    if (shouldExplode(input, index)) {
-      shouldRunAgain = true;
-      const firstValue = input[index][0];
-      const secondValue = input[index + 1][0];
-      // Mutate prev
-      if (index > 0) {
-        const [prevNum, prevDepth] = input[index - 1];
-        newNums[index - 1] = [prevNum + firstValue, prevDepth];
-        newNums.push([0, prevDepth]);
-      }
-      // Mutate next
-      if (input.length > index + 2) {
-        const [nextNum, nextDepth] = input[index + 2];
-        newNums.push([nextNum + secondValue, nextDepth]);
-      }
-      index += 2;
-
-      addRest(index + 1);
-      break;
-    } else if (shouldSplit(input, index)) {
-      shouldRunAgain = true;
-      const depth = input[index][1];
-      const left = Math.floor(input[index][0] / 2);
-      const right = Math.ceil(input[index][0] / 2);
-      newNums.push([left, depth + 1]);
-      newNums.push([right, depth + 1]);
-
-      addRest(index + 1);
-      break;
+const addExplodeLeft = (tuple, amount) => {
+  let leftTuple = tuple;
+  while (true) {
+    if (Array.isArray(leftTuple[1])) {
+      leftTuple = leftTuple[1];
     } else {
-      newNums.push(input[index]);
+      leftTuple[1] += amount;
+      break;
     }
   }
-  console.log(shouldRunAgain);
-  return newNums;
 };
 
-const add = (inputA, inputB) => {
-  return [
-    inputA.map(([value, depth]) => [value, depth + 1]),
-    inputB.map(([value, depth]) => [value, depth + 1]),
-  ];
-};
-
-const inputToTuple = (input) => {
-  const tupleTime = [];
-
-  for (let index = 0; index < input.length; index++) {
-    const [value, depth] = input[index];
-    // let prevTuple;
-    // let curTuple = tupleTime;
-    // let curDepth = depth;
-    // while (curDepth > 0) {
-    //   if (curTuple.length === 0) {
-    //     curTuple.push([]);
-    //     prevTuple = curTuple;
-    //     curTuple = curTuple[0];
-    //   } else {
-    //     prevTuple = curTuple;
-    //     curTuple = curTuple[curTuple.length - 1];
-    //   }
-    //   curDepth--;
-    // }
-    // if (curTuple.length === 0) {
-    //   curTuple[0] = value;
-    // } else if (curTuple.length === 1) {
-    //   curTuple[1] = value;
-    // } else if (prevTuple.length === 1) {
-    //   prevTuple[1] = [value];
-    //   //   prevTuple[prevTuple.length - 1] = value;
-    // } else {
-    //   console.log("shit", JSON.stringify(tupleTime));
-    // }
+const addExplodeRight = (tuple, amount) => {
+  let rightTuple = tuple;
+  while (true) {
+    if (Array.isArray(rightTuple[0])) {
+      rightTuple = rightTuple[0];
+    } else {
+      rightTuple[0] += amount;
+      break;
+    }
   }
-  return tupleTime;
+};
+
+const attemptExplode = (tuple) => {
+  const [left, right] = tuple;
+  if (Array.isArray(left)) {
+    // Save left/right values before exploding
+    const [applyLeft, applyRight] = left;
+    // Explode by replacing with 0
+    tuple[0] = 0;
+    // Apply the right value to the right of this tuple
+    if (!Array.isArray(right)) {
+      tuple[1] += applyRight;
+    } else {
+      addExplodeRight(right, applyRight);
+    }
+    return [applyLeft, null];
+  }
+  if (Array.isArray(right)) {
+    // Save left/right values before exploding
+    const [applyLeft, applyRight] = right;
+    // Explode by replacing with 0
+    tuple[1] = 0;
+    // Apply the left value to the left of this tuple
+    tuple[0] += applyLeft;
+
+    return [null, applyRight];
+  }
+  return [null, null];
+};
+
+// Performs mutation, returns if an explosion occurred or if a split occurred
+const reduceExplode = (tuple, depth = 0) => {
+  // Check if inner values should explode
+  if (depth === 3) {
+    const [applyLeft, applyRight] = attemptExplode(tuple);
+    if (applyLeft !== null || applyRight !== null) {
+      return [applyLeft, applyRight];
+    }
+  }
+  const [left, right] = tuple;
+  // Finally, reduce left/right
+  if (Array.isArray(left)) {
+    const nextReduce = reduceExplode(left, depth + 1);
+    if (nextReduce) {
+      // If explode, perform explode
+      if (Array.isArray(nextReduce)) {
+        const [applyLeft, applyRight] = nextReduce;
+        if (applyLeft) {
+          return [applyLeft, applyRight];
+        }
+        if (applyRight) {
+          if (!Array.isArray(right)) {
+            tuple[1] += applyRight;
+          } else {
+            addExplodeRight(right, applyRight);
+          }
+        }
+      }
+      return true;
+    }
+  }
+  if (Array.isArray(right)) {
+    const nextReduce = reduceExplode(right, depth + 1);
+    if (nextReduce) {
+      // If explode, perform explode
+      if (Array.isArray(nextReduce)) {
+        const [applyLeft, applyRight] = nextReduce;
+        if (applyLeft) {
+          if (!Array.isArray(left)) {
+            tuple[0] += applyLeft;
+          } else {
+            addExplodeLeft(left, applyLeft);
+          }
+        }
+        if (applyRight) {
+          return [applyLeft, applyRight];
+        }
+      }
+      return true;
+    }
+  }
+  return false;
+};
+
+const reduceSplit = (tuple) => {
+  // Check if left/right values need to split
+  const [left, right] = tuple;
+  if (!Array.isArray(left) && left >= 10) {
+    tuple[0] = [Math.floor(left / 2), Math.ceil(left / 2)];
+    return true;
+  }
+
+  if (Array.isArray(left) && reduceSplit(left)) {
+    return true;
+  }
+
+  if (!Array.isArray(right) && right >= 10) {
+    tuple[1] = [Math.floor(right / 2), Math.ceil(right / 2)];
+    return true;
+  }
+
+  return Array.isArray(right) ? reduceSplit(right) : false;
 };
 
 const checkMagnitude = (tuple) => {
@@ -131,36 +135,53 @@ const checkMagnitude = (tuple) => {
   return 3 * leftValue + 2 * rightValue;
 };
 
-console.log(lines[0]);
-console.log(reduce(lines[0]));
+const fullyReduce = (tuple) => {
+  while (true) {
+    if (reduceExplode(tuple)) {
+      // console.log(JSON.stringify(tuple), "explosion");
+      continue;
+    }
+    if (reduceSplit(tuple)) {
+      // console.log(JSON.stringify(tuple), "split");
+      continue;
+    }
+    break;
+  }
+};
 
-console.log(checkMagnitude(inputToTuple(lines[0])));
+const add = (tupleA, tupleB) => {
+  return [[...tupleA], [...tupleB]];
+};
 
-// const reduceHelper = (tuple, depth) => {
-//   // Explode pairs
-//   if (depth >= 4) {
-//     return tuple;
-//   }
-//   // Split pairs
-//   const [left, right] = tuple;
-//   const checkNum = (item) => {
-//     if (typeof item === "number" && item >= 10) {
-//       return [Math.floor(item / 2), Math.ceil(item / 2)];
-//     }
-//   };
-//   const checkNums = checkNum(left) || checkNum(right);
-//   if (checkNums) return checkNums;
-//   const checkTuples = (item) => {
-//     if (Array.isArray(item)) {
-//       return reduceHelper(item, depth + 1);
-//     }
-//   };
-//   return checkTuples(left) || checkTuples(right);
-// };
+// ===================================
+// Parsing
+// ===================================
 
-// const reduce = (tuple) => {
-//   let f = reduceHelper(tuple, 0);
-//   console.log(f);
-// };
+const part1 = () => {
+  const fs = require("fs");
+  const path = require("path");
+  const fileInput = fs.readFileSync(path.join(__dirname, "input")).toString();
 
-// reduce(lines[0]);
+  const lines = fileInput.split("\n").map((line) => {
+    return JSON.parse(line);
+  });
+
+  const result = lines.reduce((previousValue, currentValue) => {
+    if (!previousValue) {
+      return currentValue;
+    }
+    const nextValue = add([...previousValue], [...currentValue]);
+    fullyReduce(nextValue);
+    // console.log(JSON.stringify(nextValue));
+    return nextValue;
+  });
+
+  console.log(JSON.stringify(result));
+  console.log(checkMagnitude(result));
+};
+
+module.exports = {
+  checkMagnitude,
+  fullyReduce,
+  add,
+};
