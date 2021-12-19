@@ -19,45 +19,34 @@ class Coord3D extends Equatable {
 }
 
 class Displacement extends Equatable {
-  final int coordIdx;
+  final Coord3D coord;
   final int displacement;
 
-  Displacement(this.coordIdx, this.displacement);
+  Displacement(this.coord, this.displacement);
 
   @override
   List<Object?> get props => [displacement];
 
   @override
   String toString() {
-    return 'Displacement($displacement, beaconIdx: $coordIdx)';
+    return 'Displacement($displacement, beacon: $coord)';
   }
 }
 
 class Scanner {
   final List<Coord3D> beacons;
-  final Set<Displacement> xDisplacements;
-  final Set<Displacement> yDisplacements;
-  final Set<Displacement> zDisplacements;
+  final List<Displacement> xDisplacements;
+  final List<Displacement> yDisplacements;
+  final List<Displacement> zDisplacements;
 
   Scanner(this.beacons)
-      : xDisplacements = _getDisplacements(_getXCoords(beacons)),
-        yDisplacements = _getDisplacements(_getYCoords(beacons)),
-        zDisplacements = _getDisplacements(_getZCoords(beacons));
+      : xDisplacements = _getDisplacements(beacons, (coord) => coord.x),
+        yDisplacements = _getDisplacements(beacons, (coord) => coord.y),
+        zDisplacements = _getDisplacements(beacons, (coord) => coord.z);
 
-  static List<int> _getXCoords(List<Coord3D> coords) {
-    return coords.map((coord) => coord.x).toList();
-  }
-
-  static List<int> _getYCoords(List<Coord3D> coords) {
-    return coords.map((coord) => coord.y).toList();
-  }
-
-  static List<int> _getZCoords(List<Coord3D> coords) {
-    return coords.map((coord) => coord.z).toList();
-  }
-
-  static Set<Displacement> _getDisplacements(List<int> values) {
-    final indexedValues = values.asMap().entries.toList();
+  static List<Displacement> _getDisplacements(
+      List<Coord3D> beacons, int Function(Coord3D coord3d) func) {
+    final indexedValues = beacons.map(func).toList().asMap().entries.toList();
     indexedValues.sort(((a, b) => a.value.compareTo(b.value)));
     final startPos = indexedValues.first.value;
     final offsetValues = indexedValues.map((indexedValue) {
@@ -67,12 +56,12 @@ class Scanner {
     final List<Displacement> nextDisplacements = [];
     offsetValues.forEach((offset) {
       if (previous != null) {
-        nextDisplacements
-            .add(Displacement(offset.key, offset.value - previous!.value));
+        nextDisplacements.add(
+            Displacement(beacons[offset.key], offset.value - previous!.value));
       }
       previous = offset;
     });
-    return nextDisplacements.toSet();
+    return nextDisplacements;
   }
 }
 
