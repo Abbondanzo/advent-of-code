@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:linalg/linalg.dart';
 
 import '../utils.dart';
 
@@ -16,52 +17,38 @@ class Coord3D extends Equatable {
   String toString() {
     return 'Coord3D($x, $y, $z)';
   }
-}
 
-class Displacement extends Equatable {
-  final Coord3D coord;
-  final int displacement;
-
-  Displacement(this.coord, this.displacement);
-
-  @override
-  List<Object?> get props => [displacement];
-
-  @override
-  String toString() {
-    return 'Displacement($displacement, beacon: $coord)';
+  Vector toVector() {
+    return Vector.row([x.toDouble(), y.toDouble(), z.toDouble()]);
   }
 }
 
+typedef DisplacementMap = Map<Coord3D, List<Displacement>>;
+typedef Displacement = int;
+
 class Scanner {
   final List<Coord3D> beacons;
-  final List<Displacement> xDisplacements;
-  final List<Displacement> yDisplacements;
-  final List<Displacement> zDisplacements;
+  final DisplacementMap xDisplacements;
+  final DisplacementMap yDisplacements;
+  final DisplacementMap zDisplacements;
 
   Scanner(this.beacons)
       : xDisplacements = _getDisplacements(beacons, (coord) => coord.x),
         yDisplacements = _getDisplacements(beacons, (coord) => coord.y),
         zDisplacements = _getDisplacements(beacons, (coord) => coord.z);
 
-  static List<Displacement> _getDisplacements(
+  static DisplacementMap _getDisplacements(
       List<Coord3D> beacons, int Function(Coord3D coord3d) func) {
-    final indexedValues = beacons.map(func).toList().asMap().entries.toList();
-    indexedValues.sort(((a, b) => a.value.compareTo(b.value)));
-    final startPos = indexedValues.first.value;
-    final offsetValues = indexedValues.map((indexedValue) {
-      return MapEntry(indexedValue.key, (startPos - indexedValue.value).abs());
+    final DisplacementMap displacementMap = Map();
+    beacons.forEach((beacon) {
+      final currentPos = func(beacon);
+      final displacements = beacons.map((otherBeacon) {
+        final otherPos = func(otherBeacon);
+        return (currentPos - otherPos).abs();
+      }).toList();
+      displacementMap[beacon] = displacements;
     });
-    MapEntry<int, int>? previous;
-    final List<Displacement> nextDisplacements = [];
-    offsetValues.forEach((offset) {
-      if (previous != null) {
-        nextDisplacements.add(
-            Displacement(beacons[offset.key], offset.value - previous!.value));
-      }
-      previous = offset;
-    });
-    return nextDisplacements;
+    return displacementMap;
   }
 }
 
