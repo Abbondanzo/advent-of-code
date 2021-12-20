@@ -1,7 +1,10 @@
+import 'dart:collection';
+
 import 'package:equatable/equatable.dart';
 import 'package:linalg/linalg.dart';
 
 import './parse.dart';
+import './matrix.dart';
 
 extension ListIntersect<E> on List<E> {
   List<E> intersection(List<E> other) {
@@ -9,12 +12,12 @@ extension ListIntersect<E> on List<E> {
   }
 }
 
-Map<Coord3D, Coord3D>? checkForMatches(
-    DisplacementMap scannerA, DisplacementMap scannerB) {
+Map<Coord3D, Coord3D>? checkDisplacementsForMatches(
+    DisplacementMap displacementMapA, DisplacementMap displacementMapB) {
   Map<Coord3D, Coord3D> matches = Map();
 
-  scannerA.entries.forEach((displacementEntry) {
-    for (var otherDisplacementEntry in scannerB.entries) {
+  displacementMapA.entries.forEach((displacementEntry) {
+    for (var otherDisplacementEntry in displacementMapB.entries) {
       if (displacementEntry.value
               .intersection(otherDisplacementEntry.value)
               .length >=
@@ -32,90 +35,97 @@ Map<Coord3D, Coord3D>? checkForMatches(
   return null;
 }
 
-Coord3D applyTransformationMatrix(Matrix transformationMatrix, Coord3D coord) {
-  final matrixToMult =
-      Vector.column([...coord.toVector().toList(), 1.0]).toMatrix();
-  final result = transformationMatrix * matrixToMult;
-  final vectorNums = result.rowVector(0).toList();
-  return Coord3D(
-      vectorNums[0].toInt(), vectorNums[1].toInt(), vectorNums[2].toInt());
+Map<Coord3D, Coord3D>? checkForMatches(Scanner scannerA, Scanner scannerB) {
+  return checkDisplacementsForMatches(
+      scannerA.xDisplacements, scannerB.xDisplacements);
 }
 
-/// Given a mapping of coordinates `p` to their transformed counterparts `p'`,
-/// determines the transformation matrix needed to convert `p` to `p'`; that is,
-/// if you took the dot product of the returned transformation matrix and `p`,
-/// it would yield `p'`.
-///
-/// The transformation matrix that this function yields is 4x4, where the final
-/// column represents the `x`, `y`, `z` transformation (that is, the position
-/// of the scanner of the values relative to the position of the scanner of the
-/// keys)
-Matrix determineTransformationMatrix(Map<Coord3D, Coord3D> mappings) {
-  final List<Vector> p = [];
-  final List<Vector> pPrime = [];
+void assembleBeacons(Input input) {
+  final scanners = input.asMap().entries.toList();
 
-  mappings.entries.toList().take(3).forEach((entry) {
-    p.add(entry.key.toVector());
-    pPrime.add(entry.value.toVector());
-  });
+  final firstScanner = scanners.first;
+  final availableScanners = [...scanners];
+  availableScanners.remove(firstScanner);
+  final Map<int, Matrix> transformationMatrices =
+      Map.fromEntries([MapEntry(0, identityMatrix())]);
 
-  List<List<double>> toMatrixInput(List<Vector> vectors) {
-    return vectors.map((v) => v.toList()).toList();
+  final scannerQueue = Queue<MapEntry<int, Scanner>>.from([firstScanner]);
+  while (scannerQueue.isNotEmpty) {
+    final currentScanner = scannerQueue.removeFirst();
+    final currentTransformationMatrix =
+        transformationMatrices[currentScanner.key]!;
+
+    while (true) {
+      Map<Coord3D, Coord3D>? matches = null;
+      final nextScanner = availableScanners.firstWhere((maybeNextScanner) {
+        final maybeMatches =
+            checkForMatches(currentScanner.value, maybeNextScanner.value);
+        matches = maybeMatches;
+        return maybeMatches != null;
+      }, orElse: () => MapEntry(-1, Scanner([])));
+
+      if (matches == null) {
+        break;
+      }
+
+      scannerQueue.addLast(nextScanner);
+      availableScanners.remove(nextScanner);
+
+      final intermediateTMatrix =
+          determineTransformationMatrix(matches!).inverse();
+      print('Cur ${currentScanner.key} next ${nextScanner.key}');
+      print(intermediateTMatrix);
+      print(intermediateTMatrix.inverse());
+      print(intermediateTMatrix.inverse().inverse());
+
+      print(currentTransformationMatrix *
+          intermediateTMatrix *
+          currentTransformationMatrix.inverse());
+      print(currentTransformationMatrix *
+          intermediateTMatrix.inverse() *
+          currentTransformationMatrix.inverse());
+
+      print(intermediateTMatrix *
+          currentTransformationMatrix *
+          intermediateTMatrix.inverse());
+      print(intermediateTMatrix.inverse() *
+          currentTransformationMatrix *
+          intermediateTMatrix);
+
+      transformationMatrices[nextScanner.key] = intermediateTMatrix;
+    }
   }
+  // Scanner curScanner =
 
-  Matrix stackInvertForRotation(List<Vector> vectors) {
-    final crossProductList = vectors.sublist(1).map((v) {
-      return v - vectors[0];
-    }).toList();
-    assert(crossProductList.length == 2);
-    final crossProduct = crossProductList[0].crossProduct(crossProductList[1]);
-    crossProductList.add(crossProduct);
-    return Matrix(toMatrixInput(crossProductList));
-  }
+  // transformationMatrices.entries.forEach(print);
 
-  final left = stackInvertForRotation(p);
-  final right = stackInvertForRotation(pPrime);
+  // Coord3D starter = Coord3D(0, 0, 0);
+  // transformationMatrices[4]!.forEach(print);
+  // transformationMatrices[4]!.forEach((element) {
+  //   starter = applyTransformationMatrix(element, starter);
+  // });
+  // print(starter);
 
-  final rotationMatrix =
-      (left.inverse() * right).map((x) => x.round().toDouble());
+  print(transformationMatrices);
 
-  final translationVector = (pPrime[0] -
-      Vector.fromMatrix((Matrix(toMatrixInput([p[0]])) * rotationMatrix))
-          .map((x) => x.round().toDouble()));
-
-  final tVList = translationVector.toList();
-
-  /// Stack em all together now, 4x4 matrix time!
-  final finalMatrixRows = [
-    [...rotationMatrix.rowVector(0).toList(), tVList[0]],
-    [...rotationMatrix.rowVector(1).toList(), tVList[1]],
-    [...rotationMatrix.rowVector(2).toList(), tVList[2]],
-    [0.0, 0.0, 0.0, 1.0]
-  ];
-  final finalMatrix = Matrix(finalMatrixRows);
-  assert(finalMatrix.m == 4);
-  assert(finalMatrix.n == 4);
-  return finalMatrix;
-}
-
-Coord3D transformationMatrixOffset(Matrix transformationMatrix) {
-  final translationNums = transformationMatrix.columnVector(3).toList();
-  return Coord3D(translationNums[0].toInt(), translationNums[1].toInt(),
-      translationNums[2].toInt());
+  // Coord3D starter = Coord3D(0, 0, 0);
+  // starter = applyTransformationMatrix(transformationMatrices[1]!, starter);
+  // print(starter);
+  // starter = applyTransformationMatrix(transformationMatrices[4]!, starter);
+  // print(starter);
 }
 
 void main() async {
   final input = await parseInput('19/demo');
+  assembleBeacons(input);
 
-  int count = 0;
-
-  final matches = Map<Coord3D, Coord3D>();
-  matches[Coord3D(-618, -824, -621)] = Coord3D(686, 422, 578);
-  matches[Coord3D(-537, -823, -458)] = Coord3D(605, 423, 415);
-  matches[Coord3D(-447, -329, 318)] = Coord3D(515, 917, -361);
+  // final matches = Map<Coord3D, Coord3D>();
+  // matches[Coord3D(-618, -824, -621)] = Coord3D(686, 422, 578);
+  // matches[Coord3D(-537, -823, -458)] = Coord3D(605, 423, 415);
+  // matches[Coord3D(-447, -329, 318)] = Coord3D(515, 917, -361);
 
   // final matches =
-  checkForMatches(input[0].yDisplacements, input[1].yDisplacements)!;
+  // checkForMatches(input[0].yDisplacements, input[1].yDisplacements)!;
   // final matchEntries = matches.entries.toList();
 
   // final matches = Map<Coord3D, Coord3D>();
@@ -123,7 +133,7 @@ void main() async {
   // matches[Coord3D(4, 1, 0)] = Coord3D(-1, -1, 0);
   // matches[Coord3D(3, 3, 0)] = Coord3D(-2, 1, 0);
 
-  determineTransformationMatrix(matches);
+  // determineTransformationMatrix(matches);
 
   // final matrixA = Matrix([
   //   matchEntries[0].key.toVector().toList(),
@@ -164,5 +174,5 @@ void main() async {
   //   }
   // });
 
-  print(count);
+  // print(count);
 }

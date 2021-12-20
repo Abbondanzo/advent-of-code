@@ -32,6 +32,9 @@ class Scanner {
   final DisplacementMap yDisplacements;
   final DisplacementMap zDisplacements;
 
+  Coord3D? origin;
+  List<Coord3D>? transformedBeacons;
+
   Scanner(this.beacons)
       : xDisplacements = _getDisplacements(beacons, (coord) => coord.x),
         yDisplacements = _getDisplacements(beacons, (coord) => coord.y),
