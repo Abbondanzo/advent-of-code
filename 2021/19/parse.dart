@@ -21,37 +21,85 @@ class Coord3D extends Equatable {
   Vector toVector() {
     return Vector.row([x.toDouble(), y.toDouble(), z.toDouble()]);
   }
+
+  Coord3D operator +(Coord3D other) {
+    return Coord3D(x + other.x, y + other.y, z + other.z);
+  }
+
+  Coord3D operator -(Coord3D other) {
+    return Coord3D(x - other.x, y - other.y, z - other.z);
+  }
+
+  List<int> toJSON() {
+    return [x, y, z];
+  }
 }
 
 typedef DisplacementMap = Map<Coord3D, List<Displacement>>;
 typedef Displacement = int;
 
+typedef DistanceMap = Map<Coord3D, List<Distance>>;
+typedef Distance = int;
+
 class Scanner {
   final List<Coord3D> beacons;
-  final DisplacementMap xDisplacements;
-  final DisplacementMap yDisplacements;
-  final DisplacementMap zDisplacements;
 
-  Coord3D? origin;
-  List<Coord3D>? transformedBeacons;
+  DistanceMap? _xDistances;
+  DistanceMap? _yDistances;
+  DistanceMap? _zDistances;
 
-  Scanner(this.beacons)
-      : xDisplacements = _getDisplacements(beacons, (coord) => coord.x),
-        yDisplacements = _getDisplacements(beacons, (coord) => coord.y),
-        zDisplacements = _getDisplacements(beacons, (coord) => coord.z);
+  Scanner(this.beacons);
 
-  static DisplacementMap _getDisplacements(
+  DistanceMap get xDistances {
+    if (_xDistances == null) {
+      _xDistances = _getDistances(beacons, (coord) => coord.x);
+    }
+    return _xDistances!;
+  }
+
+  DisplacementMap get xDisplacements {
+    return _getDisplacements(xDistances);
+  }
+
+  DistanceMap get yDistances {
+    if (_yDistances == null) {
+      _yDistances = _getDistances(beacons, (coord) => coord.y);
+    }
+    return _yDistances!;
+  }
+
+  DisplacementMap get yDisplacements {
+    return _getDisplacements(yDistances);
+  }
+
+  DistanceMap get zDistances {
+    if (_zDistances == null) {
+      _zDistances = _getDistances(beacons, (coord) => coord.z);
+    }
+    return _zDistances!;
+  }
+
+  DisplacementMap get zDisplacements {
+    return _getDisplacements(zDistances);
+  }
+
+  static DistanceMap _getDistances(
       List<Coord3D> beacons, int Function(Coord3D coord3d) func) {
-    final DisplacementMap displacementMap = Map();
+    final DistanceMap displacementMap = Map();
     beacons.forEach((beacon) {
       final currentPos = func(beacon);
       final displacements = beacons.map((otherBeacon) {
         final otherPos = func(otherBeacon);
-        return (currentPos - otherPos).abs();
+        return currentPos - otherPos;
       }).toList();
       displacementMap[beacon] = displacements;
     });
     return displacementMap;
+  }
+
+  static DisplacementMap _getDisplacements(DistanceMap distances) {
+    return distances
+        .map((key, value) => MapEntry(key, value.map((v) => v.abs()).toList()));
   }
 }
 
@@ -84,4 +132,11 @@ Future<Input> parseInput(String path) async {
   }
 
   return scanners;
+}
+
+class OutputScanner {
+  final Coord3D position;
+  final List<Coord3D> beacons;
+
+  OutputScanner(this.position, this.beacons);
 }
