@@ -33,6 +33,10 @@ class Coord3D extends Equatable {
   List<int> toJSON() {
     return [x, y, z];
   }
+
+  int manhattenDistance(Coord3D other) {
+    return (x - other.x).abs() + (y - other.y).abs() + (z - other.z).abs();
+  }
 }
 
 typedef DisplacementMap = Map<Coord3D, List<Displacement>>;
