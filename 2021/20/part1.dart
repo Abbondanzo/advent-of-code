@@ -71,14 +71,19 @@ class Image {
   }
 }
 
-void main() async {
-  final input = await parseInput('20/input');
+Image runTimes(Input input, int iterations) {
   final image = Image(input.startInput);
 
-  for (int run in range(50)) {
+  for (int run in range(iterations)) {
     final String defaultLight = input.isLight(0) && run % 2 == 1 ? '#' : '.';
     image.enhance(input, defaultLight);
   }
 
+  return image;
+}
+
+void main() async {
+  final input = await parseInput('20/input');
+  final image = runTimes(input, 2);
   print(image.countLit());
 }
