@@ -1,14 +1,12 @@
 import '../utils.dart';
 
-typedef Image = List<List<String>>;
-
 class Input {
   final String enhancementAlgorithm;
-  final Image imageInput;
+  final List<List<String>> startInput;
 
-  Input(this.enhancementAlgorithm, this.imageInput);
+  Input(this.enhancementAlgorithm, this.startInput);
 
-  bool isEnhancementLight(int index) {
+  bool isLight(int index) {
     return enhancementAlgorithm[index] == '#';
   }
 }
@@ -23,15 +21,3 @@ Future<Input> parseInput(String path) async {
   final imageInput = lines.sublist(2).map((line) => line.split('')).toList();
   return Input(enhancementAlgorithm, imageInput);
 }
-
-// class Image {
-//   final List<List<String>> _data;
-
-//   Image(this._data);
-
-//   Image copy() {
-//     final copiedData = List<List<String>>.from(
-//         _data.map((row) => List<String>.from(row).toList())).toList();
-//     return Image(copiedData);
-//   }
-// }

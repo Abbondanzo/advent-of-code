@@ -1,142 +1,84 @@
 import '../utils.dart';
 import './parse.dart';
 
-final PADDING = 50;
+class Image {
+  List<List<String>> _data;
 
-Image padImage(Image image,
-    {padTop: false, padBottom: false, padLeft: false, padRight: false}) {
-  Image toReturn = [];
-  if (padTop) {
-    int finalRowLength = image[0].length;
-    if (padLeft) {
-      finalRowLength++;
-    }
-    if (padRight) {
-      finalRowLength++;
-    }
-    toReturn.add(List.filled(finalRowLength, '.'));
+  Image(this._data);
+
+  List<List<String>> _copyData() {
+    return List<List<String>>.from(_data.map((row) => List<String>.from(row)));
   }
 
-  List<String> rowTransform(List<String> row) {
-    List<String> rowOut = [];
-    if (padLeft) {
-      rowOut.add('.');
+  void pad(String defaultLight) {
+    final List<List<String>> nextData = [];
+    nextData.add(List.filled(_data[0].length + 4, defaultLight));
+    nextData.add(List.filled(_data[0].length + 4, defaultLight));
+    nextData.addAll(_data.map((row) =>
+        [defaultLight, defaultLight, ...row, defaultLight, defaultLight]));
+    nextData.add(List.filled(_data[0].length + 4, defaultLight));
+    nextData.add(List.filled(_data[0].length + 4, defaultLight));
+    this._data = nextData;
+  }
+
+  String _readCharAsBit(int row, int col, String defaultLight) {
+    if (row < 0 || col < 0 || row >= _data.length || col >= _data[0].length) {
+      return defaultLight == '#' ? '1' : '0';
     }
-    rowOut.addAll(row);
-    if (padRight) {
-      rowOut.add('.');
-    }
-    return rowOut;
+    return _data[row][col] == '#' ? '1' : '0';
   }
 
-  toReturn.addAll(image.map(rowTransform));
-
-  if (padBottom) {
-    toReturn.add(List.filled(toReturn[0].length, '.'));
-  }
-
-  return toReturn;
-}
-
-String readCharAsBit(Image image, int row, int col) {
-  if (row < 0 || col < 0 || row >= image.length || col >= image[0].length) {
-    return '0';
-  }
-  return image[row][col] == '#' ? '1' : '0';
-}
-
-int readNine(Image image, int row, int col) {
-  List<String> outBin = [];
-  for (int r in range(row - 1, row + 2)) {
-    for (int c in range(col - 1, col + 2)) {
-      outBin.add(readCharAsBit(image, r, c));
-    }
-  }
-  return int.parse(outBin.join(''), radix: 2);
-}
-
-Image copyImage(Image image) {
-  return List<List<String>>.from(
-      image.map((row) => List<String>.from(row).toList())).toList();
-}
-
-Image enhanceImage(Input input, Image toEnhance) {
-  final Image toReturn = copyImage(toEnhance);
-
-  bool padLeft = false, padRight = false, padTop = false, padBottom = false;
-  for (int row in range(toEnhance.length - 1)) {
-    for (int col in range(toEnhance[0].length - 1)) {
-      final shouldLight =
-          input.isEnhancementLight(readNine(toEnhance, row, col));
-      toReturn[row][col] = shouldLight ? '#' : '.';
-      if (shouldLight) {
-        padTop |= row < PADDING;
-        padLeft |= col < PADDING;
-        padRight |= col > toEnhance[0].length - PADDING;
-        padBottom |= row > toEnhance.length - PADDING;
+  int _readNine(int row, int col, String defaultLight) {
+    List<String> outBin = [];
+    for (int r in range(row - 1, row + 2)) {
+      for (int c in range(col - 1, col + 2)) {
+        outBin.add(_readCharAsBit(r, c, defaultLight));
       }
     }
+    return int.parse(outBin.join(''), radix: 2);
   }
 
-  return shavePadding(padImage(toReturn,
-      padLeft: padLeft,
-      padRight: padRight,
-      padBottom: padBottom,
-      padTop: padTop));
-}
-
-Image shavePadding(Image image) {
-  final halfPadding = (PADDING / 2).floor();
-  print(halfPadding);
-  Image shaved =
-      image.sublist(halfPadding, image.length - halfPadding).map((row) {
-    return row.sublist(halfPadding, row.length - halfPadding).toList();
-  }).toList();
-  for (int _ in range(halfPadding)) {
-    shaved = padImage(shaved,
-        padLeft: true, padRight: true, padBottom: true, padTop: true);
-  }
-  return shaved;
-}
-
-void printImage(Image image) {
-  image.forEach((line) {
-    print(line.join(''));
-  });
-  print('');
-}
-
-int countLit(Image image) {
-  int lit = 0;
-  final halfPadding = (PADDING / 2).floor();
-  image.sublist(halfPadding, image.length - halfPadding).forEach((line) {
-    line.sublist(halfPadding, line.length - halfPadding).forEach((element) {
-      if (element == '#') {
-        lit++;
+  void enhance(Input input, String defaultLight) {
+    pad(defaultLight);
+    final mutableData = _copyData();
+    for (int row in range(_data.length)) {
+      for (int col in range(_data[0].length)) {
+        final shouldLight =
+            input.isLight(_readNine(row - 1, col - 1, defaultLight));
+        mutableData[row][col] = shouldLight ? '#' : '.';
       }
+    }
+    _data = mutableData;
+  }
+
+  void printImage() {
+    _data.forEach((line) {
+      print(line.join(''));
     });
-  });
-  return lit;
+    print('');
+  }
+
+  int countLit() {
+    int lit = 0;
+    _data.forEach((line) {
+      line.forEach((element) {
+        if (element == '#') {
+          lit++;
+        }
+      });
+    });
+    return lit;
+  }
 }
 
 void main() async {
   final input = await parseInput('20/input');
+  final image = Image(input.startInput);
 
-  Image toEnhance = input.imageInput;
-
-  for (int _ in range(PADDING)) {
-    toEnhance = padImage(toEnhance,
-        padLeft: true, padRight: true, padBottom: true, padTop: true);
+  for (int run in range(50)) {
+    final String defaultLight = input.isLight(0) && run % 2 == 1 ? '#' : '.';
+    image.enhance(input, defaultLight);
   }
 
-  // printImage(toEnhance);
-
-  for (int _ in range(50)) {
-    toEnhance = enhanceImage(input, toEnhance);
-  }
-
-  // printImage(toEnhance);
-
-  printImage(toEnhance);
-  print(countLit(toEnhance));
+  print(image.countLit());
 }
