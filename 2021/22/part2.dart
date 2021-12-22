@@ -1,4 +1,3 @@
-import '../utils.dart';
 import './parse.dart';
 
 class Group {
@@ -87,14 +86,7 @@ class Group {
 
 void main() async {
   final input = await parseInput('22/input');
-
-  // final groupA = Group(0, 3, 0, 3, 0, 3);
-  // final groupB = Group(1, 2, 1, 2, 1, 2);
-  // print(groupA.carve(groupB).map((e) => e.numCubes));
-  // print(groupA.numCubes);
-  // print(groupB.numCubes);
-  // print(groupB.carve(groupA));
-  // final groupC = Group(2, 4, 2, 4, 2, 4);
+  Stopwatch stopwatch = new Stopwatch()..start();
 
   final List<Group> groupList = [];
 
@@ -136,6 +128,8 @@ void main() async {
     return output;
   }
 
+  /// How many cubes are on?
   final finalCubeCount = getTotalCubes();
   print(finalCubeCount);
+  print('executed in ${stopwatch.elapsed.inMilliseconds}ms');
 }
