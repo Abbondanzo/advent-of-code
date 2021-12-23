@@ -200,7 +200,7 @@ class GameState {
   String toString() {
     final hallwayStr = hallway.map((e) => e == null ? '.' : e).join('');
     final roomChars = rooms.map((e) => e == null ? '.' : e).toList();
-    return '''\n
+    return '''Steps: $steps
 #############
 #$hallwayStr#
 ###${roomChars[0]}#${roomChars[2]}#${roomChars[4]}#${roomChars[6]}#
@@ -214,5 +214,5 @@ void main() {
   final startGameState = GameState(List.filled(11, null),
       List.unmodifiable(['B', 'A', 'C', 'D', 'B', 'C', 'D', 'A']), 0);
 
-  print(startGameState.nextPositions());
+  startGameState.nextPositions().forEach(print);
 }
