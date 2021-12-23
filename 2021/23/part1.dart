@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 final ROOM_IDX_MAP = Map<String, List<int>>.fromEntries([
   MapEntry('A', [0, 1]),
   MapEntry('B', [2, 3]),
@@ -37,24 +39,28 @@ final List<int> ILLEGAL_HALLWAY_IDX = [2, 4, 6, 8];
 class GameState {
   final List<String?> hallway;
   final List<String?> rooms;
-  final int steps;
 
-  GameState(this.hallway, this.rooms, this.steps);
+  GameState(this.hallway, this.rooms);
 
-  List<GameState> nextPositions() {
-    final List<GameState> nextPositions = [];
+  Map<int, List<GameState>> nextPositions() {
+    final nextPositions = Map<int, List<GameState>>();
 
     /// First, check hallway if any can move into room
     hallway.asMap().forEach((hallwayPos, element) {
       if (element != null &&
           _isRoomAvailable(element) &&
           _isHallwayOpenToRoom(hallwayPos, element)) {
-        final nextSteps = _stepsToRoom(hallwayPos, element);
+        final stepsToNextState = _stepsToRoom(hallwayPos, element);
         final nextRooms = List<String?>.from(rooms);
         nextRooms[_openRoomIndex(element)] = element;
         final nextHallway = List<String?>.from(hallway);
         nextHallway[hallwayPos] = null;
-        nextPositions.add(GameState(hallway, nextRooms, steps + nextSteps));
+        final nextGameState = GameState(nextHallway, nextRooms);
+
+        nextPositions.update(stepsToNextState, (value) {
+          value.add(nextGameState);
+          return value;
+        }, ifAbsent: () => [nextGameState]);
       }
     });
 
@@ -73,8 +79,13 @@ class GameState {
           nextRooms[readIndex] = null;
           final nextHallway = List<String?>.from(hallway);
           nextHallway[openHallwayPos] = type;
-          nextPositions
-              .add(GameState(nextHallway, nextRooms, steps + nextSteps));
+
+          final nextGameState = GameState(nextHallway, nextRooms);
+
+          nextPositions.update(nextSteps, (value) {
+            value.add(nextGameState);
+            return value;
+          }, ifAbsent: () => [nextGameState]);
         });
       }
     }
@@ -155,7 +166,7 @@ class GameState {
     final indexes = ROOM_IDX_MAP[type]!;
     return rooms
         .sublist(indexes[0], indexes[1] + 1)
-        .every((e) => e == null || e == 'type');
+        .every((e) => e == null || e == type);
   }
 
   bool _isHallwayOpenToRoom(int hallwayPos, String type) {
@@ -209,7 +220,7 @@ class GameState {
   String toString() {
     final hallwayStr = hallway.map((e) => e == null ? '.' : e).join('');
     final roomChars = rooms.map((e) => e == null ? '.' : e).toList();
-    return '''Steps: $steps
+    return '''
 #############
 #$hallwayStr#
 ###${roomChars[0]}#${roomChars[2]}#${roomChars[4]}#${roomChars[6]}#
@@ -217,11 +228,63 @@ class GameState {
   #########
     ''';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (!(other is GameState) || runtimeType != other.runtimeType) return false;
+    final eq = ListEquality().equals;
+    return eq(hallway, other.hallway) && eq(rooms, other.rooms);
+  }
+
+  @override
+  int get hashCode {
+    return runtimeType.hashCode ^ hallway.hashCode ^ rooms.hashCode;
+  }
 }
 
 void main() {
-  final startGameState = GameState(List.filled(11, null),
-      List.unmodifiable(['B', 'A', 'C', 'D', 'B', 'C', 'D', 'A']), 0);
+  final startGameState = GameState(
+      List.filled(11, null), ['B', 'A', 'C', 'D', 'B', 'C', 'D', 'A']);
 
-  startGameState.nextPositions().forEach(print);
+  final solutionMap = Map<GameState, int>();
+
+  final winningGameState = GameState(
+      List.filled(11, null), ['A', 'A', 'B', 'B', 'C', 'C', 'D', 'D']);
+  solutionMap[winningGameState] = 0;
+
+  final step2 = GameState(List.filled(11, null)..[3] = 'B',
+      ['B', 'A', 'C', 'D', null, 'C', 'D', 'A']);
+  final step3 = GameState(
+      List.filled(11, null)
+        ..[3] = 'B'
+        ..[5] = 'C',
+      ['B', 'A', null, 'D', null, 'C', 'D', 'A']);
+
+  final NO_STEPS = -1;
+
+  int getCheapestSolution(GameState gameState) {
+    if (solutionMap[gameState] == null) {
+      int? cheapestSteps = null;
+
+      gameState.nextPositions().entries.forEach((entry) {
+        final stepsToNextState = entry.key;
+        entry.value.forEach((nextGameState) {
+          final nextSolution = getCheapestSolution(nextGameState);
+
+          if (nextSolution != NO_STEPS) {
+            final stepsToSolution = stepsToNextState + nextSolution;
+            if (cheapestSteps == null || stepsToSolution < cheapestSteps!) {
+              cheapestSteps = stepsToSolution;
+            }
+          }
+        });
+      });
+      solutionMap[gameState] = cheapestSteps ?? NO_STEPS;
+    }
+    return solutionMap[gameState]!;
+  }
+
+  final result = getCheapestSolution(startGameState);
+  print(result);
 }
