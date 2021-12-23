@@ -63,7 +63,8 @@ class GameState {
       /// Read from top of rooms to bottom (i.e. 0, 2, 4, 6, 1, 3, 5, 7)
       final readIndex = i >= rooms.length ? (i % rooms.length) + 1 : i;
       final type = rooms[readIndex];
-      if (type != null && !_isInRoom(readIndex)) {
+      if (type != null &&
+          (!_isInRoom(readIndex) || !_isRoomWellFormed(readIndex))) {
         final openPositions = _getOpenHallwayPositions(readIndex);
         openPositions.forEach((openHallwayPos) {
           final scale = STEP_SCALE[type]!;
@@ -91,6 +92,14 @@ class GameState {
       throw Error();
     }
     return ROOM_IDX_MAP[element]!.contains(roomIndex);
+  }
+
+  bool _isRoomWellFormed(int roomIndex) {
+    final roomType = ROOM_IDX_MAP.entries
+        .firstWhere((entry) => entry.value.contains(roomIndex))
+        .key;
+    return ROOM_IDX_MAP[roomType]!
+        .every((idx) => rooms[idx] == null || rooms[idx] == roomType);
   }
 
   List<int> _getOpenHallwayPositions(int roomIndex) {
