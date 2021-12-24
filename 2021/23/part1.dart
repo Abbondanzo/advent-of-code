@@ -67,28 +67,31 @@ class GameState {
     });
 
     /// Then, check if any in a room need to move to hallway
-    for (int i = 0; i < rooms.length * 2; i += 2) {
-      /// Read from top of rooms to bottom (i.e. 0, 2, 4, 6, 1, 3, 5, 7)
-      final readIndex = i >= rooms.length ? (i % rooms.length) + 1 : i;
-      final type = rooms[readIndex];
-      if (type != null &&
-          (!_isInRoom(readIndex) || !_isRoomWellFormed(readIndex))) {
-        final openPositions = _getOpenHallwayPositions(readIndex);
-        openPositions.forEach((openHallwayPos) {
-          final scale = STEP_SCALE[type]!;
-          final stepsToNextState =
-              _stepsToHallway(readIndex, openHallwayPos) * scale;
-          final nextRooms = List<String?>.from(rooms);
-          nextRooms[readIndex] = null;
-          final nextHallway = List<String?>.from(hallway);
-          nextHallway[openHallwayPos] = type;
+    final roomSize = _roomSize;
 
-          final nextGameState = GameState(nextHallway, nextRooms);
+    for (int row = 0; row < roomSize; row++) {
+      for (int col = 0; col < 4; col++) {
+        final readIndex = row + roomSize * col;
+        final type = rooms[readIndex];
+        if (type != null &&
+            (!_isInRoom(readIndex) || !_isRoomWellFormed(readIndex))) {
+          final openPositions = _getOpenHallwayPositions(readIndex);
+          openPositions.forEach((openHallwayPos) {
+            final scale = STEP_SCALE[type]!;
+            final stepsToNextState =
+                _stepsToHallway(readIndex, openHallwayPos) * scale;
+            final nextRooms = List<String?>.from(rooms);
+            nextRooms[readIndex] = null;
+            final nextHallway = List<String?>.from(hallway);
+            nextHallway[openHallwayPos] = type;
 
-          nextPositions.update(stepsToNextState, (value) {
-            return [...value, nextGameState];
-          }, ifAbsent: () => [nextGameState]);
-        });
+            final nextGameState = GameState(nextHallway, nextRooms);
+
+            nextPositions.update(stepsToNextState, (value) {
+              return [...value, nextGameState];
+            }, ifAbsent: () => [nextGameState]);
+          });
+        }
       }
     }
 
@@ -116,11 +119,14 @@ class GameState {
   }
 
   List<int> _getOpenHallwayPositions(int roomIndex) {
-    /// Check above
-    if (roomIndex % 2 == 1 && rooms[roomIndex - 1] != null) {
+    final roomType = INV_ROOM_IDX_MAP[roomIndex]!;
+    final roomIndices = ROOM_IDX_MAP[roomType]!;
+    // Check above current index
+    final sublist = roomIndices.sublist(0, roomIndices.indexOf(roomIndex));
+    if (sublist.any((idx) => rooms[idx] != null)) {
       return [];
     }
-    final roomType = INV_ROOM_IDX_MAP[roomIndex]!;
+    // roomIndices.
     final roomOpenIdx = ROOM_HALLWAY_MAP[roomType]!;
     final List<int> availableIndices = [];
 
@@ -154,8 +160,8 @@ class GameState {
   }
 
   int _stepsToHallway(int roomIndex, int hallwayPos) {
-    final stepsToHallway = roomIndex % 2 == 1 ? 2 : 1;
     final roomType = INV_ROOM_IDX_MAP[roomIndex]!;
+    final stepsToHallway = ROOM_IDX_MAP[roomType]!.indexOf(roomIndex) + 1;
     final roomOpenIdx = ROOM_HALLWAY_MAP[roomType]!;
     return (hallwayPos - roomOpenIdx).abs() + stepsToHallway;
   }
@@ -167,7 +173,7 @@ class GameState {
   bool _isRoomAvailable(String type) {
     final indexes = ROOM_IDX_MAP[type]!;
     return rooms
-        .sublist(indexes[0], indexes[1] + 1)
+        .sublist(indexes[0], indexes[indexes.length - 1] + 1)
         .every((e) => e == null || e == type);
   }
 
@@ -184,49 +190,39 @@ class GameState {
 
   int _stepsToRoom(int hallwayPos, String type) {
     final distanceToOpen = (hallwayPos - ROOM_HALLWAY_MAP[type]!).abs();
-    final roomTop = ROOM_IDX_MAP[type]![0];
-
-    /// Room top should always be empty
-    if (rooms[roomTop] != null) {
-      throw Error();
-    }
-
-    final stepsDown = ((rooms[roomTop + 1] == null) ? 2 : 1);
+    final roomIndices = ROOM_IDX_MAP[type]!;
+    final roomIndex = roomIndices.lastWhere((idx) => rooms[idx] == null);
+    final stepsDown = ROOM_IDX_MAP[type]!.indexOf(roomIndex) + 1;
     return distanceToOpen + stepsDown;
   }
 
   int _openRoomIndex(String type) {
-    int checkRoomTop(int roomTop) {
-      /// Room top should always be empty
-      if (rooms[roomTop] != null) {
-        throw Error();
-      }
-      return rooms[roomTop + 1] == null ? roomTop + 1 : roomTop;
-    }
+    final roomIndices = ROOM_IDX_MAP[type]!;
+    return roomIndices.lastWhere((idx) => rooms[idx] == null);
+  }
 
-    switch (type) {
-      case 'A':
-        return checkRoomTop(0);
-      case 'B':
-        return checkRoomTop(2);
-      case 'C':
-        return checkRoomTop(4);
-      case 'D':
-        return checkRoomTop(6);
-      default:
-        throw Error();
-    }
+  int get _roomSize {
+    return (rooms.length / 4).floor();
   }
 
   @override
   String toString() {
     final hallwayStr = hallway.map((e) => e == null ? '.' : e).join('');
-    final roomChars = rooms.map((e) => e == null ? '.' : e).toList();
+    String takeRow(int rowIndex) {
+      return rooms
+          .asMap()
+          .entries
+          .where((entry) => entry.key % _roomSize == rowIndex)
+          .toList()
+          .map((e) => e.value == null ? '.' : e.value)
+          .join('#');
+    }
+
     return '''
 #############
 #$hallwayStr#
-###${roomChars[0]}#${roomChars[2]}#${roomChars[4]}#${roomChars[6]}#
-  #${roomChars[1]}#${roomChars[3]}#${roomChars[5]}#${roomChars[7]}#
+###${takeRow(0)}###
+  #${takeRow(1)}#
   #########
     ''';
   }

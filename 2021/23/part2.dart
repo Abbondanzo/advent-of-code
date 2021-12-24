@@ -77,7 +77,7 @@ class GameState {
     });
 
     /// Then, check if any in a room need to move to hallway
-    final roomSize = 4;
+    final roomSize = _roomSize;
 
     for (int row = 0; row < roomSize; row++) {
       for (int col = 0; col < 4; col++) {
@@ -201,13 +201,18 @@ class GameState {
   int _stepsToRoom(int hallwayPos, String type) {
     final distanceToOpen = (hallwayPos - ROOM_HALLWAY_MAP[type]!).abs();
     final roomIndices = ROOM_IDX_MAP[type]!;
-    final stepsDown = roomIndices.lastWhere((idx) => rooms[idx] == null);
+    final roomIndex = roomIndices.lastWhere((idx) => rooms[idx] == null);
+    final stepsDown = ROOM_IDX_MAP[type]!.indexOf(roomIndex) + 1;
     return distanceToOpen + stepsDown;
   }
 
   int _openRoomIndex(String type) {
     final roomIndices = ROOM_IDX_MAP[type]!;
     return roomIndices.lastWhere((idx) => rooms[idx] == null);
+  }
+
+  int get _roomSize {
+    return (rooms.length / 4).floor();
   }
 
   @override
@@ -217,7 +222,7 @@ class GameState {
       return rooms
           .asMap()
           .entries
-          .where((entry) => entry.key % 4 == rowIndex)
+          .where((entry) => entry.key % _roomSize == rowIndex)
           .toList()
           .map((e) => e.value == null ? '.' : e.value)
           .join('#');
@@ -228,8 +233,6 @@ class GameState {
 #$hallwayStr#
 ###${takeRow(0)}###
   #${takeRow(1)}#
-  #${takeRow(2)}#
-  #${takeRow(3)}#
   #########
     ''';
   }
@@ -288,6 +291,7 @@ void main() {
     'D',
     'D'
   ]);
+
   solutionMap[winningGameState] = Pair(0, [winningGameState]);
 
   final NO_STEPS = -1;
@@ -319,5 +323,5 @@ void main() {
 
   final result = getCheapestSolution(demoGameState);
 
-  print(result);
+  print(result.first);
 }
