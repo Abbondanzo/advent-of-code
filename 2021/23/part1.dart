@@ -27,6 +27,9 @@ final STEP_SCALE = Map<String, int>.fromEntries([
 ]);
 final List<int> ILLEGAL_HALLWAY_IDX = [2, 4, 6, 8];
 
+final step12 = GameState(List.filled(11, null)..[9] = 'A',
+    [null, 'A', 'B', 'B', 'C', 'C', 'D', 'D']);
+
 /// Game positions
 /// ```
 /// #############
@@ -51,7 +54,13 @@ class GameState {
       if (element != null &&
           _isRoomAvailable(element) &&
           _isHallwayOpenToRoom(hallwayPos, element)) {
-        final stepsToNextState = _stepsToRoom(hallwayPos, element);
+        final scale = STEP_SCALE[element]!;
+        final stepsToNextState = _stepsToRoom(hallwayPos, element) * scale;
+
+        if (this == step12) {
+          print(stepsToNextState);
+        }
+
         final nextRooms = List<String?>.from(rooms);
         nextRooms[_openRoomIndex(element)] = element;
         final nextHallway = List<String?>.from(hallway);
@@ -247,6 +256,9 @@ void main() {
   final startGameState = GameState(
       List.filled(11, null), ['B', 'A', 'C', 'D', 'B', 'C', 'D', 'A']);
 
+  final inputGameState = GameState(
+      List.filled(11, null), ['B', 'B', 'A', 'C', 'A', 'D', 'D', 'C']);
+
   final solutionMap = Map<GameState, Pair<int, List<GameState>>>();
 
   final winningGameState = GameState(
@@ -292,6 +304,7 @@ void main() {
         ..[5] = 'D'
         ..[9] = 'A',
       [null, 'A', 'B', 'B', 'C', 'C', null, 'D']);
+
   final step12 = GameState(List.filled(11, null)..[9] = 'A',
       [null, 'A', 'B', 'B', 'C', 'C', 'D', 'D']);
 
@@ -300,10 +313,6 @@ void main() {
   Pair<int, List<GameState>> getCheapestSolution(GameState gameState) {
     if (solutionMap[gameState] == null) {
       Pair<int, List<GameState>>? cheapestSteps = null;
-
-      // if (gameState == step12) {
-      //   print(gameState.nextPositions());
-      // }
 
       gameState.nextPositions().entries.forEach((entry) {
         final stepsToNextState = entry.key;
@@ -326,7 +335,7 @@ void main() {
     return solutionMap[gameState]!;
   }
 
-  final result = getCheapestSolution(startGameState);
+  final result = getCheapestSolution(inputGameState);
 
-  print(result);
+  print(result.first);
 }
