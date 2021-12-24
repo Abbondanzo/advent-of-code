@@ -27,9 +27,6 @@ final STEP_SCALE = Map<String, int>.fromEntries([
 ]);
 final List<int> ILLEGAL_HALLWAY_IDX = [2, 4, 6, 8];
 
-final step12 = GameState(List.filled(11, null)..[9] = 'A',
-    [null, 'A', 'B', 'B', 'C', 'C', 'D', 'D']);
-
 /// Game positions
 /// ```
 /// #############
@@ -56,10 +53,6 @@ class GameState {
           _isHallwayOpenToRoom(hallwayPos, element)) {
         final scale = STEP_SCALE[element]!;
         final stepsToNextState = _stepsToRoom(hallwayPos, element) * scale;
-
-        if (this == step12) {
-          print(stepsToNextState);
-        }
 
         final nextRooms = List<String?>.from(rooms);
         nextRooms[_openRoomIndex(element)] = element;
@@ -253,9 +246,6 @@ class GameState {
 }
 
 void main() {
-  final startGameState = GameState(
-      List.filled(11, null), ['B', 'A', 'C', 'D', 'B', 'C', 'D', 'A']);
-
   final inputGameState = GameState(
       List.filled(11, null), ['B', 'B', 'A', 'C', 'A', 'D', 'D', 'C']);
 
@@ -264,49 +254,6 @@ void main() {
   final winningGameState = GameState(
       List.filled(11, null), ['A', 'A', 'B', 'B', 'C', 'C', 'D', 'D']);
   solutionMap[winningGameState] = Pair(0, [winningGameState]);
-
-  final step2 = GameState(List.filled(11, null)..[3] = 'B',
-      ['B', 'A', 'C', 'D', null, 'C', 'D', 'A']);
-  final step3 = GameState(
-      List.filled(11, null)
-        ..[3] = 'B'
-        ..[5] = 'C',
-      ['B', 'A', null, 'D', null, 'C', 'D', 'A']);
-  final step4 = GameState(List.filled(11, null)..[3] = 'B',
-      ['B', 'A', null, 'D', 'C', 'C', 'D', 'A']);
-  final step5 = GameState(
-      List.filled(11, null)
-        ..[3] = 'B'
-        ..[5] = 'D',
-      ['B', 'A', null, null, 'C', 'C', 'D', 'A']);
-  final step6 = GameState(List.filled(11, null)..[5] = 'D',
-      ['B', 'A', null, 'B', 'C', 'C', 'D', 'A']);
-  final step7 = GameState(
-      List.filled(11, null)
-        ..[3] = 'B'
-        ..[5] = 'D',
-      [null, 'A', null, 'B', 'C', 'C', 'D', 'A']);
-  final step8 = GameState(List.filled(11, null)..[5] = 'D',
-      [null, 'A', 'B', 'B', 'C', 'C', 'D', 'A']);
-  final step9 = GameState(
-      List.filled(11, null)
-        ..[5] = 'D'
-        ..[7] = 'D',
-      [null, 'A', 'B', 'B', 'C', 'C', null, 'A']);
-  final step10 = GameState(
-      List.filled(11, null)
-        ..[5] = 'D'
-        ..[7] = 'D'
-        ..[9] = 'A',
-      [null, 'A', 'B', 'B', 'C', 'C', null, null]);
-  final step11 = GameState(
-      List.filled(11, null)
-        ..[5] = 'D'
-        ..[9] = 'A',
-      [null, 'A', 'B', 'B', 'C', 'C', null, 'D']);
-
-  final step12 = GameState(List.filled(11, null)..[9] = 'A',
-      [null, 'A', 'B', 'B', 'C', 'C', 'D', 'D']);
 
   final NO_STEPS = -1;
 
