@@ -252,23 +252,41 @@ class GameState {
 }
 
 void main() {
-  final demoGameState = GameState(List.filled(11, null), [
+  // final demoGameState = GameState(List.filled(11, null), [
+  //   'B',
+  //   'D',
+  //   'D',
+  //   'A',
+  //   'C',
+  //   'C',
+  //   'B',
+  //   'D',
+  //   'B',
+  //   'B',
+  //   'A',
+  //   'C',
+  //   'D',
+  //   'A',
+  //   'C',
+  //   'A'
+  // ]);
+  final inputGameState = GameState(List.filled(11, null), [
     'B',
+    'D',
+    'D',
+    'B',
+    'A',
+    'C',
+    'B',
+    'C',
+    'A',
+    'B',
+    'A',
     'D',
     'D',
     'A',
     'C',
-    'C',
-    'B',
-    'D',
-    'B',
-    'B',
-    'A',
-    'C',
-    'D',
-    'A',
-    'C',
-    'A'
+    'C'
   ]);
 
   final solutionMap = Map<GameState, Pair<int, List<GameState>>>();
@@ -321,7 +339,7 @@ void main() {
     return solutionMap[gameState]!;
   }
 
-  final result = getCheapestSolution(demoGameState);
+  final result = getCheapestSolution(inputGameState);
 
   print(result.first);
 }
