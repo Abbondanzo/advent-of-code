@@ -51,4 +51,6 @@ Step 4 is where things get interesting. It's the first time that the `aSet` valu
 
 Wait a minute--that was a previous Z value. In fact, if we take a look at our `aSet` and `bSet`, the value is 26 in `aSet` for every time the value in `bSet` is negative. There is also the same number of negative numbers to positive numbers.
 
+It looks like `z` is increasing/decreasing by a factor of 26 every time the `aSet` value is 1/26 respectively. And we know that we start with a `z` of 0 and valid numbers have a final `z` register value of 0. Now we need to figure out how the values of `B` and `C` relate to each other.
+
 Could there be a pattern emerging here? I'll find out when it's not 2:30am on Christmas Day.
