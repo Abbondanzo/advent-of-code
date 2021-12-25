@@ -99,4 +99,8 @@ I'm not sure here either. The value of `C` in respect to `A` and `B` in each pos
 
 _Wait a minute, this looks familiar_
 
-Our valid input range is `1 <= w <= 9`. And the maximum `cList` value is 14. This means that `y` can never be greater than 23. Multiplying by 26, then adding a number that is less than 26--or dividing and truncating that same value by 26. That sounds like `z` is a base-26 number. So each operation where `B` is positive, we add a base-26 digit onto the end of `z`. And when `B` is negative, we remove the least significant digit.
+Our valid input range is `1 <= w <= 9`. And the maximum `cList` value is 14. This means that `y` can never be greater than 23. Multiplying by 26, then adding a number that is less than 26--or dividing and truncating that same value by 26. That sounds like `z` is a base-26 number. So each operation where `B` is positive, we add a base-26 digit onto the end of `z`. And when `B` is negative, we remove the least significant digit. So we need to figure out what values combine with each `C` such that the digit is reset when popped.
+
+So let's look at `bList` and `cList`. The first digit of `cList` (8) and our input digit forms the most significant bit. The last digit of `bList` (-9) has to be combined with the most significant bit and gives us the final digit of our valid model number.
+
+Let's say the first input digit is 2. This makes the MSB 10. Then this would force the final input digit to be 1. Likewise if the first digit is 9, the MSB is 18 and the final digit is 9. As we add digits to the base-26 `z` register, we need to remove the LSB from that digit.
