@@ -4,11 +4,11 @@ class Register {
   int value = 0;
 }
 
-abstract class Op {
+abstract class Instruction {
   void run(int input);
 }
 
-class Input extends Op {
+class Input extends Instruction {
   final Register reg;
 
   Input(this.reg);
@@ -19,58 +19,63 @@ class Input extends Op {
   }
 }
 
-class Add extends Op {
+class Add extends Instruction {
   final Register reg;
+  final int Function() value;
 
-  Add(this.reg);
+  Add(this.reg, this.value);
 
   @override
-  void run(int input) {
-    reg.value += input;
+  void run(_) {
+    reg.value += value();
   }
 }
 
-class Multiply extends Op {
+class Multiply extends Instruction {
   final Register reg;
+  final int Function() value;
 
-  Multiply(this.reg);
+  Multiply(this.reg, this.value);
 
   @override
-  void run(int input) {
-    reg.value *= input;
+  void run(_) {
+    reg.value *= value();
   }
 }
 
-class Divide extends Op {
+class Divide extends Instruction {
   final Register reg;
+  final int Function() value;
 
-  Divide(this.reg);
+  Divide(this.reg, this.value);
 
   @override
-  void run(int input) {
-    reg.value = reg.value ~/ input;
+  void run(_) {
+    reg.value ~/= value();
   }
 }
 
-class Modulo extends Op {
+class Modulo extends Instruction {
   final Register reg;
+  final int Function() value;
 
-  Modulo(this.reg);
+  Modulo(this.reg, this.value);
 
   @override
-  void run(int input) {
-    reg.value = reg.value % input;
+  void run(_) {
+    reg.value %= value();
   }
 }
 
-class Equals extends Op {
+class Equals extends Instruction {
   final Register reg;
+  final int Function() value;
 
-  Equals(this.reg);
+  Equals(this.reg, this.value);
 
   @override
-  void run(int input) {
-    reg.value = reg.value == input ? 1 : 0;
+  void run(_) {
+    reg.value = reg.value == value() ? 1 : 0;
   }
 }
 
@@ -81,11 +86,14 @@ class ALU {
   final Register z = Register();
 
   late final void Function(int input) parser;
+
+  @override
+  String toString() {
+    return 'ALU(w: ${w.value}, x: ${x.value}, y: ${y.value}, z: ${z.value})';
+  }
 }
 
-void main() async {
-  final fileDescriptor = readFile('24/input');
-  final lines = await fileDescriptor.toList();
+ALU createALUFromInstructions(List<String> instructions) {
   final tempALU = ALU();
   Register getRegister(String regName) {
     switch (regName) {
@@ -110,17 +118,50 @@ void main() async {
     }
   }
 
-  lines.forEach((line) {
+  /// Instructions:
+  /// inp a - Read an input value and write it to variable a.
+  /// add a b - Add the value of a to the value of b, then store the result in variable a.
+  /// mul a b - Multiply the value of a by the value of b, then store the result in variable a.
+  /// div a b - Divide the value of a by the value of b, truncate the result to an integer, then store the result in variable a. (Here, "truncate" means to round the value toward zero.)
+  /// mod a b - Divide the value of a by the value of b, then store the remainder in variable a. (This is also called the modulo operation.)
+  /// eql a b - If the value of a and b are equal, then store the value 1 in variable a. Otherwise, store the value 0 in variable a.
+  final instructionRunners = instructions.map((line) {
     final functors = line.split(' ');
     final opName = functors[0];
-    final firstRegister = 
+    final register = getRegister(functors[1]);
     switch (opName) {
       case 'inp':
-        return Input(getRegister(functors[1]));
+        return Input(register);
+      case 'add':
+        return Add(register, () => getValueFromStr(functors[2]));
+      case 'mul':
+        return Multiply(register, () => getValueFromStr(functors[2]));
+      case 'div':
+        return Divide(register, () => getValueFromStr(functors[2]));
+      case 'mod':
+        return Modulo(register, () => getValueFromStr(functors[2]));
+      case 'eql':
+        return Equals(register, () => getValueFromStr(functors[2]));
       default:
         throw Error();
     }
   });
 
-  void parser(int input) {}
+  void parser(int input) {
+    instructionRunners.forEach((instr) {
+      instr.run(input);
+    });
+  }
+
+  tempALU.parser = parser;
+
+  return tempALU;
+}
+
+void main() async {
+  final fileDescriptor = readFile('24/input');
+  final lines = await fileDescriptor.toList();
+  final alu = createALUFromInstructions(lines);
+  alu.parser(4);
+  print(alu);
 }
