@@ -34,9 +34,9 @@ Next, let's attempt to simplify each ALU into a singular function.
 From my own puzzle input, the list of `A`, `B` and `C` values are:
 
 ```dart
-final aSet = {1, 1, 1, 26, 1, 26, 26, 1, 1, 1, 26, 26, 26, 26};
-final bSet = {14, 15, 13, -10, 14, -3, -14, 12, 14, 12, -6, -6, -2, -9};
-final cSet = {8, 11, 2, 11, 1, 5, 10, 6, 1, 11, 9, 14, 11, 2};
+final aList = [1, 1, 1, 26, 1, 26, 26, 1, 1, 1, 26, 26, 26, 26];
+final bList = [14, 15, 13, -10, 14, -3, -14, 12, 14, 12, -6, -6, -2, -9];
+final cList = [8, 11, 2, 11, 1, 5, 10, 6, 1, 11, 9, 14, 11, 2];
 ```
 
 ## Spitballing
@@ -47,15 +47,15 @@ Next, let's use that `z'` of 9 and another `w` of 1. No matter what, if `B` is g
 
 Step 3. Let's continue using `w` of 1. We know from the previous step observation that `x` must be 1. Our `y` register takes on a value of 3. And `z'''` is `246 * 26 + 3` or 6399.
 
-Step 4 is where things get interesting. It's the first time that the `aSet` value is 26. And where `B` is negative. `6399 % 26 - 10` is -7 so `x` must be `1` no matter what `w` value we have. Let's go with `w` of 1, making `y` 12. The computation for `z''''` is a bit different now that we're dividing by 26 and not 1. When dividing, we floor. Therefore, `z''' / A` becomes 246.
+Step 4 is where things get interesting. It's the first time that the `aList` value is 26. And where `B` is negative. `6399 % 26 - 10` is -7 so `x` must be `1` no matter what `w` value we have. Let's go with `w` of 1, making `y` 12. The computation for `z''''` is a bit different now that we're dividing by 26 and not 1. When dividing, we floor. Therefore, `z''' / A` becomes 246.
 
-Wait a minute--that was a previous Z value. In fact, if we take a look at our `aSet` and `bSet`, the value is 26 in `aSet` for every time the value in `bSet` is negative. There is also the same number of negative numbers to positive numbers.
+Wait a minute--that was a previous Z value. In fact, if we take a look at our `aList` and `bList`, the value is 26 in `aList` for every time the value in `bList` is negative. There is also the same number of negative numbers to positive numbers.
 
-It looks like `z` is increasing/decreasing by a factor of 26 every time the `aSet` value is 1/26 respectively. And we know that we start with a `z` of 0 and valid numbers have a final `z` register value of 0. Now we need to figure out how the values of `B` and `C` relate to each other.
+It looks like `z` is increasing/decreasing by a factor of 26 every time the `aList` value is 1/26 respectively. And we know that we start with a `z` of 0 and valid numbers have a final `z` register value of 0. Now we need to figure out how the values of `B` and `C` relate to each other.
 
 Could there be a pattern emerging here? I'll find out when it's not 2:30am on Christmas Day.
 
-## Splitballing Pt. 2
+## Spitballing Pt. 2
 
 Let's work backwards to try to come up with a solution. We know that the final `z` register must be 0, so we can generate all the possible starting `z` and `w` values that would yield such a number. For starters, let's expand the equation a bit:
 
@@ -78,3 +78,21 @@ w: 3 --> (3 + 9 == z % 26) --> z: 12, 38, 64, 90, 116, 142, 168, 194, 220, 246, 
 ```
 
 This isn't going to work. I need more coffee.
+
+## Spitballing Pt. 3
+
+10 cups of coffee made, and I've got about 3 of them in my system now. Presents have been unwrapped and it's time to take another crack at this. Let's establish a few more patterns because 9^14 possible input combinations is going to take the next few millenia to solve. Pulling down our equations from above:
+
+- The value for `x` can be determined as `w == (z % 26 + B) ? 0 : 1`
+- The value for `y` can be determined as `(w + C) * x`
+- The value for `z'` can be determined as `z ~/ A * (25 * x + 1) + y`.
+
+One thing to note is that `B` in our `bList` is never `0 <= B < 10`. And each time `B` is positive, `x` is always 1. Subsequently, each time `B` is positive, `A` is 1, which means that we're multipying our `z` register by 26. On the flipside, when `B` is negative, `x` can be 0 or 1. If `x` is 0, `y` is also 0 and the value of the `z` register is divided by 26 and floored. If `x` is 1, again we'd be increasing our `z` by a factor of 26.
+
+_Our end goal is a `z` register of 0_
+
+This means that `x` should never be 1 if `B` is negative--since it's guaranteed that we increase `z` by a factor of 26 7 times, we should also be decreasing by that same factor 7 times. The only way for that decrease to happen is when `x` is 0, and `z' = z ~/ 26`.
+
+_But what about `C`?_
+
+I'm not sure here either. The value of `C` in respect to `A` and `B` in each position of the list doesn't appear to be related.
