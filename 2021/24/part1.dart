@@ -89,6 +89,13 @@ class ALU {
 
   late final void Function(Queue<int> input) parser;
 
+  void reset() {
+    w.value = 0;
+    x.value = 0;
+    y.value = 0;
+    z.value = 0;
+  }
+
   @override
   String toString() {
     return 'ALU(w: ${w.value}, x: ${x.value}, y: ${y.value}, z: ${z.value})';
@@ -161,10 +168,23 @@ ALU createALUFromInstructions(List<String> instructions) {
 }
 
 void main() async {
-  final fileDescriptor = readFile('24/demo');
+  final fileDescriptor = readFile('24/input');
   final lines = await fileDescriptor.toList();
   final alu = createALUFromInstructions(lines);
-  final input = Queue<int>.from('15'.split('').map((e) => int.parse(e)));
+
+  for (int i in range(10)) {
+    alu.parser(Queue.from([i, i, i, i, i, i, i, i, i, i, i, i, i, i]));
+    print(alu);
+    alu.reset();
+  }
+
+  int i = 11111111111111;
+  while (i < 100000000000000) {
+    i++;
+  }
+
+  final input =
+      Queue<int>.from('13579246899999'.split('').map((e) => int.parse(e)));
   alu.parser(input);
   print(alu);
 }
