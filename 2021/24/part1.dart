@@ -36,10 +36,10 @@ void main() async {
     } else {
       final lastBit = bitQueue.removeLast();
       final leastSignificantBit = (lastBit.c + b) % 26;
-      final pop = leastSignificantBit > 9 ? 9 : 9 - leastSignificantBit;
-      final push = pop + lastBit.c + b;
-      output[lastBit.digitIdx] = pop;
-      output[outputIdx] = push;
+      final addsToZReg = leastSignificantBit > 9 ? 9 : 9 - leastSignificantBit;
+      final removesFromZReg = addsToZReg + lastBit.c + b;
+      output[lastBit.digitIdx] = addsToZReg;
+      output[outputIdx] = removesFromZReg;
     }
   });
 
