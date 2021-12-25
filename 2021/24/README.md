@@ -96,3 +96,7 @@ This means that `x` should never be 1 if `B` is negative--since it's guaranteed 
 _But what about `C`?_
 
 I'm not sure here either. The value of `C` in respect to `A` and `B` in each position of the list doesn't appear to be related.
+
+_Wait a minute, this looks familiar_
+
+Our valid input range is `1 <= w <= 9`. And the maximum `cList` value is 14. This means that `y` can never be greater than 23. Multiplying by 26, then adding a number that is less than 26--or dividing and truncating that same value by 26. That sounds like `z` is a base-26 number. So each operation where `B` is positive, we add a base-26 digit onto the end of `z`. And when `B` is negative, we remove the least significant digit.
