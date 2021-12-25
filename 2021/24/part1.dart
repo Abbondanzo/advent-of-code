@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import '../utils.dart';
 
 class Register {
@@ -5,7 +7,7 @@ class Register {
 }
 
 abstract class Instruction {
-  void run(int input);
+  void run(Queue<int> input);
 }
 
 class Input extends Instruction {
@@ -14,8 +16,8 @@ class Input extends Instruction {
   Input(this.reg);
 
   @override
-  void run(int input) {
-    reg.value = input;
+  void run(Queue<int> input) {
+    reg.value = input.removeFirst();
   }
 }
 
@@ -85,7 +87,7 @@ class ALU {
   final Register y = Register();
   final Register z = Register();
 
-  late final void Function(int input) parser;
+  late final void Function(Queue<int> input) parser;
 
   @override
   String toString() {
@@ -147,7 +149,7 @@ ALU createALUFromInstructions(List<String> instructions) {
     }
   });
 
-  void parser(int input) {
+  void parser(Queue<int> input) {
     instructionRunners.forEach((instr) {
       instr.run(input);
     });
@@ -159,9 +161,10 @@ ALU createALUFromInstructions(List<String> instructions) {
 }
 
 void main() async {
-  final fileDescriptor = readFile('24/input');
+  final fileDescriptor = readFile('24/demo');
   final lines = await fileDescriptor.toList();
   final alu = createALUFromInstructions(lines);
-  alu.parser(4);
+  final input = Queue<int>.from('15'.split('').map((e) => int.parse(e)));
+  alu.parser(input);
   print(alu);
 }
