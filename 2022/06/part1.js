@@ -1,3 +1,16 @@
 const fs = require("fs");
 const data = fs.readFileSync("input").toString();
-const lines = data.split("\n").filter(Boolean);
+
+const BUFFER_SIZE = 4;
+
+let i = BUFFER_SIZE;
+while (i < data.length) {
+  const str = data.slice(i - BUFFER_SIZE, i);
+  const set = new Set(str.split(""));
+  if (set.size === BUFFER_SIZE) {
+    break;
+  }
+  i++;
+}
+
+console.log(i);
