@@ -12,14 +12,14 @@ Future<List<Pair<String, int>>> parseInput(String path) async {
 }
 
 class GameState {
-  final Set<Coordinate> tailSpots;
+  final List<Set<Coordinate>> tailSpots;
   Coordinate head;
-  Coordinate tail;
+  List<Coordinate> tails;
 
   GameState()
-      : tailSpots = new Set(),
+      : tailSpots = range(9).map((_) => {new Coordinate(0, 0)}).toList(),
         head = new Coordinate(0, 0),
-        tail = new Coordinate(0, 0);
+        tails = range(9).map((_) => new Coordinate(0, 0)).toList();
 
   void handleCommand(String direction, int steps) {
     int stepX = 0;
@@ -39,39 +39,47 @@ class GameState {
     }
     for (var _ in range(0, steps)) {
       head = Coordinate(head.x + stepX, head.y + stepY);
-      _updateTail();
-      // print("head");
-      // print(head);
-      // print(tail);
+      _updateTails();
     }
   }
 
-  void _updateTail() {
+  void _updateTails() {
+    for (int knot in range(tails.length)) {
+      Coordinate prev;
+      if (knot == 0) {
+        prev = head;
+      } else {
+        prev = tails[knot - 1];
+      }
+      tails[knot] = _movePoint(prev, tails[knot]);
+      tailSpots[knot].add(tails[knot]);
+    }
+  }
+
+  Coordinate _movePoint(Coordinate h, Coordinate t) {
     // Same spot
-    if (head.x == tail.x && head.y == tail.y) {
-      tailSpots.add(tail);
+    if (h.x == t.x && h.y == t.y) {
+      return t;
     }
     // Touching
-    else if ((head.x - tail.x).abs() <= 1 && (head.y - tail.y).abs() <= 1) {
-      tailSpots.add(tail);
+    else if ((h.x - t.x).abs() <= 1 && (h.y - t.y).abs() <= 1) {
+      return t;
     }
     // Horizontal/vertical
-    else if (head.x == tail.x || head.y == tail.y) {
-      if (head.x == tail.x) {
-        int step = head.y > tail.y ? -1 : 1;
-        tail = Coordinate(tail.x, head.y + step);
+    else if (h.x == t.x || h.y == t.y) {
+      if (h.x == t.x) {
+        int step = h.y > t.y ? -1 : 1;
+        return Coordinate(t.x, h.y + step);
       } else {
-        int step = head.x > tail.x ? -1 : 1;
-        tail = Coordinate(head.x + step, tail.y);
+        int step = h.x > t.x ? -1 : 1;
+        return Coordinate(h.x + step, t.y);
       }
-      tailSpots.add(tail);
     }
     // Diagonal
     else {
-      int xStep = head.x > tail.x ? 1 : -1;
-      int yStep = head.y > tail.y ? 1 : -1;
-      tail = Coordinate(tail.x + xStep, tail.y + yStep);
-      tailSpots.add(tail);
+      int xStep = h.x > t.x ? 1 : -1;
+      int yStep = h.y > t.y ? 1 : -1;
+      return Coordinate(t.x + xStep, t.y + yStep);
     }
   }
 }
@@ -80,8 +88,7 @@ void main() async {
   final input = await parseInput('09/input');
   final gameState = new GameState();
   for (var instruction in input) {
-    // print(instruction);
     gameState.handleCommand(instruction.first, instruction.second);
   }
-  print(gameState.tailSpots.length);
+  print(gameState.tailSpots[gameState.tailSpots.length - 1].length);
 }
