@@ -12,5 +12,5 @@ Future<List<Pair<String, int>>> parseInput(String path) async {
 }
 
 void main() async {
-  final input = await parseInput('09/input');
+  final input = await parseInput('11/input');
 }
