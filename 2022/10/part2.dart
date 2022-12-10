@@ -25,7 +25,6 @@ void main() async {
   for (int i = 0; i < 240; i++) {
     final crt = i % 40;
     final position = processor.runToCycle(i + 1);
-    print("$i $position $row");
     if (crt >= position - 1 && crt <= position + 1) {
       row += "#";
     } else {
