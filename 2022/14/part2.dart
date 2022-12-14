@@ -1,7 +1,7 @@
 import './shared.dart';
 import '../utils.dart';
 
-Coordinate? findSpot(Board board) {
+Coordinate findSpot(Board board) {
   Coordinate cur = Coordinate(500, 0);
   while (true) {
     if (cur.y >= board.largestY + 1) {
@@ -32,11 +32,8 @@ void main() async {
   final input = await parseInput('14/input');
   final board = Board.createBoard(input);
 
-  Coordinate? spot = findSpot(board);
-  while (spot != null) {
-    if (board.sand.contains(spot)) {
-      break;
-    }
+  Coordinate spot = findSpot(board);
+  while (!board.sand.contains(spot)) {
     board.sand.add(spot);
     spot = findSpot(board);
   }
