@@ -6,6 +6,20 @@ bool inBounds(Coordinate coord) {
   return coord.x >= 0 && coord.y >= 0 && coord.x <= MAX && coord.y <= MAX;
 }
 
+/**
+ * It's not efficient but it gets the job done--we build a set of coordinates 
+ * around the outside of a sensor's range and check every single one against the
+ * manhattan distances for all the other sensors. Since it's guaranteed that 
+ * there can only ever be 1 in a range 0 <= (x|y) <= 4000000, we know that it
+ * must touch a given sensor's zone.
+ * 
+ * It would be slightly more efficient to find midpoints between sensors, 
+ * evaluate if they fall inside of sensed regions, and expand around the edges
+ * until a point is found. 
+ * 
+ * Alas, neither solution is all that fast nor are they more important than my
+ * sleep.
+ */
 void main() async {
   final input = await parseInput('15/input');
   final distances = manhattanDistances(input);
