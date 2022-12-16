@@ -46,18 +46,6 @@ DistancesMap toDistances(TunnelMap map) {
 
 typedef TimeRemainingToNode = Pair<int, TunnelNode>;
 
-typedef DistanceToNode = Pair<int, TunnelNode>;
-
-List<DistanceToNode> edges(String start, TunnelMap map,
-    DistancesMap distancesMap, Set<String> opened) {
-  final unopenedNodes = map.values.where((node) => !opened.contains(node.name));
-  final starterNode = map[start]!;
-  return unopenedNodes.map((unopenedNode) {
-    final distance = distancesMap[starterNode.name]![unopenedNode.name]!;
-    return Pair(distance, unopenedNode);
-  }).toList();
-}
-
 class QueueItem {
   final int totalSoFar;
   final int timeRemaining;
@@ -81,6 +69,18 @@ class QueueItem {
     return QueueItem(totalSoFar + flowPerTurn, timeRemaining - 1, flowPerTurn,
         opened, curNode);
   }
+
+  QueueItem goToOtherNode(int distance, TunnelNode otherNode) {
+    assert(otherNode != curNode);
+    return QueueItem(totalSoFar + (flowPerTurn * distance),
+        timeRemaining - distance, flowPerTurn, opened, otherNode);
+  }
+
+  @override
+  String toString() {
+    // TODO: implement toString
+    return "$totalSoFar $timeRemaining";
+  }
 }
 
 QueueItem removePriority(List<QueueItem> queue) {
@@ -97,28 +97,46 @@ QueueItem removePriority(List<QueueItem> queue) {
   return removed;
 }
 
+typedef DistanceToNode = Pair<int, TunnelNode>;
+
+List<QueueItem> edges(
+    QueueItem queueItem, TunnelMap map, DistancesMap distancesMap) {
+  final unopenedNodes = map.values.where((node) =>
+      !queueItem.opened.contains(node.name) &&
+      node.name != queueItem.curNode.name);
+  final starterNode = map[queueItem.curNode.name]!;
+  return unopenedNodes.map((unopenedNode) {
+    final distance = distancesMap[starterNode.name]![unopenedNode.name]!;
+    return queueItem.goToOtherNode(distance, unopenedNode);
+  }).toList();
+}
+
 List<String> dijkstras(String first, TunnelMap map, DistancesMap distancesMap) {
   assert(map.length > 0);
   final start = map[first]!;
   List<QueueItem> queue = [QueueItem(0, 30, 0, {}, start)];
   Map<String, int> maxOutput = Map();
   Map<String, String> prev = Map();
-  Set<String> opened = Set();
   while (queue.isNotEmpty) {
     final queueItem = removePriority(queue);
-    if (queueItem.timeRemaining <= 0) {
+    if (queueItem.timeRemaining <= 2) {
       continue;
     }
+    print(queueItem);
 
     // Add open check
     if (!queueItem.opened.contains(queueItem.curNode.name)) {
       queue.add(queueItem.openCurrentNode());
     }
 
-    for (String neighbor in queueItem.curNode.connectedTo) {
-      final neighborNode = map[neighbor]!;
-      final nextState = queueItem.goToNeighbor(neighborNode);
-      queue.add(nextState);
+    // for (String neighbor in queueItem.curNode.connectedTo) {
+    //   final neighborNode = map[neighbor]!;
+    //   final nextState = queueItem.goToNeighbor(neighborNode);
+    //   queue.add(nextState);
+    // }
+
+    for (final edge in edges(queueItem, map, distancesMap)) {
+      final nextEdge = queue.add(edge.openCurrentNode());
     }
 
     // for (final edge in edges(node.name, map, distancesMap, opened)) {
