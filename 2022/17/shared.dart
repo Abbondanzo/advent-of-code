@@ -100,5 +100,7 @@ Future<Input> parseInput(String path) async {
   final inputLines = readFile(path);
   final inputLineList = await inputLines.toList();
   final rawInputLine = inputLineList[0];
-  return Input(rawInputLine.split(""));
+  final commands = rawInputLine.split("");
+  assert(commands.every((element) => element == "<" || element == ">"));
+  return Input(commands);
 }
