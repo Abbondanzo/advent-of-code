@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import './shared.dart';
 import '../utils.dart';
 
@@ -90,7 +88,7 @@ class GameState {
 }
 
 void main() async {
-  final input = await parseInput('16/demo');
+  final input = await parseInput('16/input');
   final map = toMap(input);
   final distances = toDistances(map);
   final filteredMap = filterMap(map);
@@ -142,8 +140,5 @@ void main() async {
       : b.totalFlow > a.totalFlow
           ? 1
           : 0);
-
-  for (final state in states) {
-    print(state);
-  }
+  print(finalValues.first.totalFlow);
 }
