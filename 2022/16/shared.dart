@@ -13,6 +13,53 @@ class TunnelNode {
   }
 }
 
+typedef TunnelMap = Map<String, TunnelNode>;
+
+TunnelMap toMap(Input input) {
+  return input.fold<TunnelMap>(Map(), (previousValue, element) {
+    previousValue[element.name] = element;
+    return previousValue;
+  });
+}
+
+typedef DistancesMap = Map<String, Map<String, int>>;
+
+DistancesMap toDistances(TunnelMap map) {
+  final distances = DistancesMap();
+  map.entries.forEach((element) {
+    final starterNode = element.value;
+    final nodeDistances = Map<String, int>();
+    final queue = [starterNode.connectedTo];
+    int distance = 1;
+    while (queue.isNotEmpty) {
+      final List<String> nextQueue = [];
+      for (String neighbor in queue.removeAt(0)) {
+        nodeDistances[neighbor] = distance;
+        final neighborNode = map[neighbor]!;
+        neighborNode.connectedTo.forEach((element) {
+          if (starterNode.name != element &&
+              !nodeDistances.keys.contains(element)) {
+            nextQueue.add(element);
+          }
+        });
+      }
+      if (nextQueue.isEmpty) {
+        break;
+      }
+      queue.add(nextQueue);
+      distance++;
+    }
+    distances[element.key] = nodeDistances;
+  });
+  return distances;
+}
+
+TunnelMap filterMap(TunnelMap map) {
+  final TunnelMap newMap = Map();
+  newMap.addEntries(map.entries.where((element) => element.value.flowRate > 0));
+  return newMap;
+}
+
 typedef Input = List<TunnelNode>;
 
 Future<Input> parseInput(String path) async {
