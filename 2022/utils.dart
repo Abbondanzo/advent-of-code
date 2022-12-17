@@ -77,3 +77,9 @@ List<int> range(int count, [int? end = null]) {
   }
   return List.generate(count, (index) => index);
 }
+
+class ErrorMessage extends Error {
+  final String message;
+
+  ErrorMessage(this.message);
+}
