@@ -2,39 +2,39 @@ import '../utils.dart';
 
 class Input {
   final List<String> rawCommands;
-  int _pieceIdx = 0;
-  int _commandIdx = 0;
+  int pieceIdx = 0;
+  int commandIdx = 0;
 
   Input(this.rawCommands);
 
   Iterable<bool> moveIterator() sync* {
     while (true) {
-      yield rawCommands[_commandIdx] == "<";
-      _commandIdx++;
-      if (_commandIdx >= rawCommands.length) {
-        _commandIdx = 0;
+      yield rawCommands[commandIdx] == "<";
+      commandIdx++;
+      if (commandIdx >= rawCommands.length) {
+        commandIdx = 0;
       }
     }
   }
 
   Iterable<Rock> rockIterator() sync* {
     while (true) {
-      yield Rock(_pieceIdx);
-      _pieceIdx++;
-      if (_pieceIdx > 4) {
-        _pieceIdx = 0;
+      yield Rock(pieceIdx);
+      pieceIdx++;
+      if (pieceIdx > 4) {
+        pieceIdx = 0;
       }
     }
   }
 }
 
 class Rock {
-  final int _index;
+  final int index;
   // Origin is bottom-left
   final Set<Coordinate> points = {};
 
-  Rock(this._index) {
-    switch (_index) {
+  Rock(this.index) {
+    switch (index) {
       case 0:
         points.add(Coordinate(0, 0));
         points.add(Coordinate(1, 0));
@@ -68,7 +68,7 @@ class Rock {
         points.add(Coordinate(1, 1));
         break;
       default:
-        throw ErrorMessage("Unsupported rock idx $_index");
+        throw ErrorMessage("Unsupported rock idx $index");
     }
   }
 
