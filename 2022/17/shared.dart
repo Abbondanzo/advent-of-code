@@ -1,17 +1,17 @@
 import '../utils.dart';
 
 class Input {
-  final List<String> _rawCommands;
+  final List<String> rawCommands;
   int _pieceIdx = 0;
   int _commandIdx = 0;
 
-  Input(this._rawCommands);
+  Input(this.rawCommands);
 
   Iterable<bool> moveIterator() sync* {
     while (true) {
-      yield _rawCommands[_commandIdx] == "<";
+      yield rawCommands[_commandIdx] == "<";
       _commandIdx++;
-      if (_commandIdx >= _rawCommands.length) {
+      if (_commandIdx >= rawCommands.length) {
         _commandIdx = 0;
       }
     }
@@ -91,9 +91,47 @@ class Rock {
   }
 }
 
-// Tetris bb
-class Board {
-  final Set<Coordinate> frozenRock = {};
+bool collides(Rock rock, Coordinate origin, Set<Coordinate> frozenRocks) {
+  final offsetHitPoints = rock.offset(origin);
+  return frozenRocks.difference(offsetHitPoints).length != frozenRocks.length;
+}
+
+bool canMoveDown(Rock rock, Coordinate origin, Set<Coordinate> frozenRocks) {
+  if (origin.y == 0) return false;
+  final nextOrigin = Coordinate(origin.x, origin.y - 1);
+  return !collides(rock, nextOrigin, frozenRocks);
+}
+
+Coordinate moveLeft(Rock rock, Coordinate origin, Set<Coordinate> frozenRocks) {
+  if (origin.x == 0) return origin;
+  final nextOrigin = Coordinate(origin.x - 1, origin.y);
+  if (collides(rock, nextOrigin, frozenRocks)) {
+    return origin;
+  } else {
+    return nextOrigin;
+  }
+}
+
+Coordinate moveRight(
+    Rock rock, Coordinate origin, Set<Coordinate> frozenRocks) {
+  final nextOrigin = Coordinate(origin.x + 1, origin.y);
+  final offsetHitPoints = rock.offset(nextOrigin);
+  if (offsetHitPoints.any((element) => element.x > 6)) return origin;
+  if (frozenRocks.difference(offsetHitPoints).length == frozenRocks.length) {
+    return nextOrigin;
+  } else {
+    return origin;
+  }
+}
+
+int highestPoint(Set<Coordinate> frozenRocks) {
+  int highestY = -1;
+  for (final rock in frozenRocks) {
+    if (rock.y > highestY) {
+      highestY = rock.y;
+    }
+  }
+  return highestY;
 }
 
 Future<Input> parseInput(String path) async {
