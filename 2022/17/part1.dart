@@ -53,7 +53,7 @@ void purgeLowest(Set<Coordinate> frozenRocks) {
     }
   }
   highest.sort((a, b) => a.compareTo(b));
-  final purgeBelow = highest.first;
+  final purgeBelow = highest.first - 5;
   if (purgeBelow == 0) return;
   frozenRocks.removeWhere((element) => element.y < purgeBelow);
 }
