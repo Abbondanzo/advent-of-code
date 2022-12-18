@@ -1,33 +1,8 @@
 import './shared.dart';
 import '../utils.dart';
 
-Set<Coordinate> shiftDown(Set<Coordinate> frozenRocks, int by) {
-  final Set<Coordinate> newSet = {};
-  for (final coord in frozenRocks) {
-    newSet.add(Coordinate(coord.x, coord.y - by));
-  }
-  return newSet;
-}
-
-bool hasPattern(Set<Coordinate> frozenRocks) {
-  final totalHeight = highestPoint(frozenRocks) + 1;
-  if (totalHeight % 2 != 0) return false;
-  final offset = totalHeight ~/ 2;
-  final Set<Coordinate> bottomSet = {};
-  final Set<Coordinate> topSet = {};
-  for (final coord in frozenRocks) {
-    if (coord.y >= offset) {
-      topSet.add(coord);
-    } else {
-      bottomSet.add(coord);
-    }
-  }
-  final shiftedTopSet = shiftDown(frozenRocks, offset);
-  return bottomSet.difference(shiftedTopSet).isEmpty;
-}
-
 void main() async {
-  final input = await parseInput('17/demo');
+  final input = await parseInput('17/input');
 
   int numRocks = 0;
   final Set<Coordinate> frozenRocks = {};
@@ -36,7 +11,7 @@ void main() async {
 
   int lastHeight = 0;
 
-  while (numRocks < 520) {
+  while (numRocks < input.rawCommands.length * 25) {
     Coordinate origin = Coordinate(2, highestPoint(frozenRocks) + 4);
     rockIterator.moveNext();
     final rock = rockIterator.current;
@@ -60,16 +35,26 @@ void main() async {
 
     final currentHeight = highestPoint(frozenRocks);
 
-    if (numRocks % 1000 == 0) {
-      print("Ongoing $numRocks");
+    if (numRocks % input.rawCommands.length == 0) {
+      print(
+          "${currentHeight - lastHeight}, $numRocks ${highestPoint(frozenRocks)}");
     }
 
-    if (hasPattern(frozenRocks)) {
-      print(numRocks);
-      break;
-    }
+    // Observations on the demo input:
+    // 280 rocks, 424 height
+    // (1000000000000 / 280).floor() = 3571428571
+    // (1000000000000 % 280) = 120
+    // (1000000000000 - 240) = 999999999760
+    // (999999999760 / 280).floor() = 3571428570
+    // (999999999760 % 280) = 160
+    // growth rate = [63, 59, 59, 59, 64, 60, 60]
+    // = 368 + (3571428570 * 424) + 63 + 59 + 59 + 59
+    // = 368 + 1514285713680 + 63 + 59 + 59 + 59
+    // = 1514285714288, the answer
 
     lastHeight = currentHeight;
+
+    purgeLowest(frozenRocks);
 
     numRocks++;
   }

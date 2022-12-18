@@ -134,6 +134,20 @@ int highestPoint(Set<Coordinate> frozenRocks) {
   return highestY;
 }
 
+void purgeLowest(Set<Coordinate> frozenRocks) {
+  // Find the lowest "high" point across columns, and purge below it
+  List<int> highest = List.filled(7, 0);
+  for (final rock in frozenRocks) {
+    if (rock.y > highest[rock.x]) {
+      highest[rock.x] = rock.y;
+    }
+  }
+  highest.sort((a, b) => a.compareTo(b));
+  final purgeBelow = highest.first - 5;
+  if (purgeBelow == 0) return;
+  frozenRocks.removeWhere((element) => element.y < purgeBelow);
+}
+
 Future<Input> parseInput(String path) async {
   final inputLines = readFile(path);
   final inputLineList = await inputLines.toList();
