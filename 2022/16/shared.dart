@@ -1,6 +1,8 @@
+import 'package:equatable/equatable.dart';
+
 import '../utils.dart';
 
-class TunnelNode {
+class TunnelNode extends Equatable {
   final String name;
   final int flowRate;
   final List<String> connectedTo;
@@ -11,6 +13,9 @@ class TunnelNode {
   String toString() {
     return "[$name] r=$flowRate, t=$connectedTo";
   }
+
+  @override
+  List<Object?> get props => [name];
 }
 
 typedef TunnelMap = Map<String, TunnelNode>;

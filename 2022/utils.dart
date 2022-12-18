@@ -43,7 +43,7 @@ class Coordinate extends Equatable {
   }
 }
 
-class Pair<A, B> {
+class Pair<A, B> extends Equatable {
   final A first;
   final B second;
 
@@ -53,6 +53,9 @@ class Pair<A, B> {
   String toString() {
     return 'Pair($first, $second)';
   }
+
+  @override
+  List<Object?> get props => [first, second];
 }
 
 /// Generate a list of numbers for iterative purposes.

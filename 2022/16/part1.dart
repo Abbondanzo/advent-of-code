@@ -18,14 +18,13 @@ class GameState {
     return map.values.where((node) => !opened.contains(node.name)).toList();
   }
 
-  GameState next(String nextName, int nextFlow, int distance) {
+  GameState next(String nextName, int nextFlow, int time) {
     final Set<String> newOpened = Set();
     newOpened.addAll(opened);
     newOpened.add(nextName);
-    final timeToOpen = distance + 1;
-    final newTotalFlow = totalFlow + (timeToOpen * flowRate);
+    final newTotalFlow = totalFlow + (time * flowRate);
     final newFlowRate = flowRate + nextFlow;
-    final newTimeElapsed = timeElapsed + timeToOpen;
+    final newTimeElapsed = timeElapsed + time;
     return GameState(newOpened, newTotalFlow, newFlowRate, newTimeElapsed);
   }
 
@@ -46,21 +45,24 @@ void main() async {
   final distances = toDistances(map);
   final filteredMap = filterMap(map);
 
-  List<Map<String, GameState>> states = List.generate(31, (_) => Map());
+  final timeLimit = 30;
+
+  List<Map<String, GameState>> states =
+      List.generate(timeLimit + 1, (_) => Map());
   final starterState = GameState({}, 0, 0, 0);
-  for (TunnelNode nextNode in GameState({}, 0, 0, 0).unvisited(filteredMap)) {
+  for (TunnelNode nextNode in starterState.unvisited(filteredMap)) {
     final distance = distances["AA"]![nextNode.name]!;
     final nextState =
-        starterState.next(nextNode.name, nextNode.flowRate, distance);
+        starterState.next(nextNode.name, nextNode.flowRate, distance + 1);
     states[nextState.timeElapsed][nextNode.name] = nextState;
   }
 
-  for (int time in range(31)) {
+  for (int time in range(timeLimit + 1)) {
     for (String valve in filteredMap.keys) {
       final maybeState = states[time][valve];
       if (maybeState != null) {
         // If we stay here
-        for (int remainderTime in range(time + 1, 31)) {
+        for (int remainderTime in range(time + 1, timeLimit + 1)) {
           final nextState = maybeState.flowTo(remainderTime);
           final existingNextState = states[remainderTime][valve];
           if (existingNextState == null ||
@@ -72,8 +74,8 @@ void main() async {
         for (TunnelNode nextNode in maybeState.unvisited(filteredMap)) {
           final distance = distances[valve]![nextNode.name]!;
           final nextState =
-              maybeState.next(nextNode.name, nextNode.flowRate, distance);
-          if (nextState.timeElapsed > 30) {
+              maybeState.next(nextNode.name, nextNode.flowRate, distance + 1);
+          if (nextState.timeElapsed > timeLimit) {
             continue;
           }
           final existingNextState =
@@ -87,7 +89,7 @@ void main() async {
     }
   }
 
-  final finalValues = states[30].values.toList();
+  final finalValues = states[timeLimit].values.toList();
   finalValues.sort((a, b) => a.totalFlow > b.totalFlow
       ? -1
       : b.totalFlow > a.totalFlow
