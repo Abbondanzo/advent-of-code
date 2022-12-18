@@ -44,39 +44,54 @@ void main() async {
       }
     }
   }
-  final List<List<Coordinate3D>> pockets = [];
+  List<List<Coordinate3D>> pockets = [];
   for (final coord in air) {
-    List<List<Coordinate3D>> touchingPockets = pockets
-        .where((pocket) => pocket.any((element) => element.touching(coord)))
-        .toList();
-    if (touchingPockets.length == 0) {
+    List<Coordinate3D>? touchingPocket;
+    for (final pocket in pockets) {
+      if (pocket.any((element) => element.touching(coord))) {
+        touchingPocket = pocket;
+        break;
+      }
+    }
+    if (touchingPocket != null) {
+      touchingPocket.add(coord);
+    } else {
       pockets.add([coord]);
-      continue;
     }
-    if (touchingPockets.length == 1) {
-      touchingPockets[0].add(coord);
-      continue;
-    }
-    pockets.removeWhere((pocket) => touchingPockets.contains(pocket));
-    final newPocket = touchingPockets.reduce((value, element) {
-      value.addAll(element);
-      return value;
-    }).toList();
-    pockets.add(newPocket);
-
-    // for (final pocket in pockets) {
-
-    //   if (pocket.any((element) => element.touching(coord))) {
-    //     touchingPocket = pocket;
-    //     break;
-    //   }
-    // }
-    // if (touchingPocket != null) {
-    //   touchingPocket.add(coord);
-    // } else {
-    //   pockets.add([coord]);
-    // }
   }
+  // eh I'm tired
+  while (true) {
+    final Map<int, int> toCombine = Map();
+    for (int i in range(pockets.length)) {
+      for (int j in range(i + 1, pockets.length)) {
+        if (i == j) {
+          continue;
+        }
+        final pocketA = pockets[i];
+        final pocketB = pockets[j];
+        final canTouch = pocketA.any((elementA) =>
+            pocketB.any((elementB) => elementA.touching(elementB)));
+        if (canTouch) {
+          toCombine[j] = toCombine[i] ?? i;
+        }
+      }
+    }
+    if (toCombine.isEmpty) {
+      break;
+    }
+    final List<List<Coordinate3D>> newPockets = [];
+    toCombine.entries.forEach((element) {
+      final finalPocket = pockets[element.value];
+      finalPocket.addAll(pockets[element.key]);
+    });
+    for (int i in range(pockets.length)) {
+      if (!toCombine.keys.contains(i)) {
+        newPockets.add(pockets[i]);
+      }
+    }
+    pockets = newPockets;
+  }
+
   final internalPockets = pockets.where((pocket) {
     final nullLol = Coordinate3D(999, 999, 999);
     final Coordinate3D? hasOutside = pocket.firstWhere(
@@ -94,7 +109,7 @@ void main() async {
   final naiveSides = exteriorSides(input);
   int toScrub = 0;
   for (final pocket in internalPockets) {
-    print(pocket);
+    // print(pocket);
     toScrub += exteriorSides(pocket);
   }
 
