@@ -74,6 +74,7 @@ class GameState {
         final worker = newWorkers[i];
         if (worker?.workRemaining == 1) {
           newFlowRate += worker!.node.flowRate;
+          assert(!opened.contains(worker.node.name));
           newOpened.add(worker.node.name);
           newWorkers[i] = null;
         } else if (worker != null) {
@@ -97,7 +98,7 @@ void main() async {
   final distances = toDistances(map);
   final filteredMap = filterMap(map);
 
-  final TIME = 26;
+  final TIME = 1;
 
   List<Map<WorkerSpots, GameState>> states =
       List.generate(TIME + 1, (_) => Map());
@@ -115,11 +116,8 @@ void main() async {
       for (String elephantValue in valveKeys) {
         final mapKey = WorkerSpots([humanValve, elephantValue]);
         final maybeState = states[time][mapKey];
-        if (maybeState == null) {
-          print("$time $mapKey ${states[time].keys}");
-        }
+
         if (maybeState != null) {
-          print(mapKey);
           // If we stay here
           for (int remainderTime in range(time + 1, TIME + 1)) {
             final nextState = maybeState.flowTo(remainderTime);
@@ -130,26 +128,51 @@ void main() async {
             }
           }
           // If we move
+          final unopenedValves = maybeState.unvisited(filteredMap);
+          final List<GameState?> pendingMoves =
+              List.filled(unopenedValves.length, null);
+          final List<WorkerSpots> pendingSpots =
+              List.filled(unopenedValves.length, mapKey);
+
+          // Build a cumulative list of potential move sets
           for (int workerIndex in range(maybeState.workers.length)) {
-            // Can't move
+            // Can't move this worker since it's already working
             if (maybeState.workers[workerIndex] != null) {
               continue;
             }
-            final workerValve = mapKey.spots[workerIndex];
-            for (final nextNode in maybeState.unvisited(filteredMap)) {
+            for (int valveIndex in range(unopenedValves.length)) {
+              int offset = 1;
+
+              print(unopenedValves.length);
+              final currentState =
+                  pendingMoves[nonOffsetValveIndex] ?? maybeState;
+              final offsetValveIndex =
+                  (nonOffsetValveIndex + workerIndex) % unopenedValves.length;
+              final nextNode = unopenedValves[offsetValveIndex];
+              final workerValve = mapKey.spots[workerIndex];
               final distance = distances[workerValve]![nextNode.name]!;
-              final pendingState =
-                  maybeState.addWork(workerIndex, nextNode, distance + 1);
-              final newSpots = mapKey.spots.sublist(0);
+              // Apply work to state
+              pendingMoves[nonOffsetValveIndex] =
+                  currentState.addWork(workerIndex, nextNode, distance + 1);
+              // Update cumulative spot key
+              final newSpots =
+                  pendingSpots[nonOffsetValveIndex].spots.sublist(0);
               newSpots[workerIndex] = nextNode.name;
-              final newKey = WorkerSpots(newSpots);
-              for (int remainderTime in range(time + 1, TIME + 1)) {
-                final nextState = pendingState.flowTo(remainderTime);
-                final existingNextState = states[remainderTime][newKey];
-                if (existingNextState == null ||
-                    existingNextState.totalFlow < nextState.totalFlow) {
-                  states[nextState.timeElapsed][newKey] = nextState;
-                }
+              pendingSpots[nonOffsetValveIndex] = WorkerSpots(newSpots);
+            }
+          }
+
+          // Apply pending moves
+          for (int index in range(pendingMoves.length)) {
+            final pendingMove = pendingMoves[index];
+            final pendingSpot = pendingSpots[index];
+            if (pendingMove == null) continue;
+            for (int remainderTime in range(time + 1, TIME + 1)) {
+              final nextState = pendingMove.flowTo(remainderTime);
+              final existingNextState = states[remainderTime][pendingSpot];
+              if (existingNextState == null ||
+                  existingNextState.totalFlow < nextState.totalFlow) {
+                states[nextState.timeElapsed][pendingSpot] = nextState;
               }
             }
           }
@@ -162,12 +185,17 @@ void main() async {
   //   print(entry);
   // }
 
-  // for (final entry in states[TIME].entries) {
-  //   print(entry);
-  // }
+  for (final entry in states[TIME].entries) {
+    print(entry);
+  }
 
   // final finalValues = states[TIME].values.toList();
-  // print(finalValues);
+  // finalValues.sort((a, b) => a.totalFlow > b.totalFlow
+  //     ? -1
+  //     : b.totalFlow > a.totalFlow
+  //         ? 1
+  //         : 0);
+  // print(finalValues.first.totalFlow);
 
   // for (TunnelNode nextNode in starterState.unvisited(filteredMap)) {
   //   final distance = distances["AA"]![nextNode.name]!;
