@@ -1,178 +1,143 @@
-import 'package:equatable/equatable.dart';
-import 'package:collection/collection.dart';
 import './shared.dart';
 import '../utils.dart';
-import 'part1.dart';
-
-class WorkLeft {
-  final TunnelNode node;
-  final int workRemaining;
-
-  WorkLeft(this.node, this.workRemaining);
-
-  @override
-  String toString() {
-    return "WorkLeft(${node.name}, t=$workRemaining)";
-  }
-}
-
-class WorkerSpots extends Equatable {
-  final List<String> spots;
-
-  WorkerSpots(this.spots);
-
-  @override
-  List<Object?> get props => spots;
-
-  @override
-  String toString() {
-    return "$spots";
-  }
-}
 
 class GameState {
   final Set<String> opened;
   final int totalFlow;
   final int flowRate;
   final int timeElapsed;
-  final List<WorkLeft?> workers;
 
   GameState(
     this.opened,
     this.totalFlow,
     this.flowRate,
     this.timeElapsed,
-    this.workers,
   );
 
   List<TunnelNode> unvisited(TunnelMap map) {
-    return map.values
-        .where((node) =>
-            !opened.contains(node.name) &&
-            workers.every((worker) => worker?.node.name != node.name))
-        .toList();
+    return map.values.where((node) => !opened.contains(node.name)).toList();
   }
 
-  GameState addWork(int worker, TunnelNode node, int work) {
-    assert(workers[worker] == null);
-    final newWorkers = workers.sublist(0);
-    newWorkers[worker] = WorkLeft(node, work);
-    return GameState(opened, totalFlow, flowRate, timeElapsed, newWorkers);
+  GameState next(String nextName, int nextFlow, int time) {
+    final Set<String> newOpened = Set();
+    newOpened.addAll(opened);
+    newOpened.add(nextName);
+    final newTotalFlow = totalFlow + (time * flowRate);
+    final newFlowRate = flowRate + nextFlow;
+    final newTimeElapsed = timeElapsed + time;
+    return GameState(newOpened, newTotalFlow, newFlowRate, newTimeElapsed);
   }
 
-  GameState flowTo(int newTimeElapsed) {
-    assert(newTimeElapsed >= timeElapsed);
-    final Set<String> newOpened = opened.union({});
-    final List<WorkLeft?> newWorkers = workers.sublist(0);
-    int newTotalFlow = totalFlow;
-    int newFlowRate = flowRate;
-    for (int _ in range(timeElapsed, newTimeElapsed + 1)) {
-      // First, flow
-      newTotalFlow += newFlowRate;
-      // Next, open
-      for (int i in range(newWorkers.length)) {
-        final worker = newWorkers[i];
-        if (worker?.workRemaining == 1) {
-          newFlowRate += worker!.node.flowRate;
-          assert(!opened.contains(worker.node.name));
-          newOpened.add(worker.node.name);
-          newWorkers[i] = null;
-        } else if (worker != null) {
-          newWorkers[i] = WorkLeft(worker.node, worker.workRemaining - 1);
-        }
-      }
-    }
-    return GameState(
-        newOpened, newTotalFlow, newFlowRate, newTimeElapsed, newWorkers);
+  GameState flowTo(int time) {
+    final newTotalFlow = totalFlow + (time - timeElapsed) * flowRate;
+    return GameState(opened, newTotalFlow, flowRate, time);
   }
 
   @override
   String toString() {
-    return "t=$totalFlow : r=$flowRate : s=$timeElapsed, o=$opened, w=$workers";
+    return "t=$totalFlow : r=$flowRate : s=$timeElapsed, o=$opened";
   }
 }
 
-void main() async {
-  final input = await parseInput('16/demo');
-  final map = toMap(input);
-  final distances = toDistances(map);
-  final filteredMap = filterMap(map);
+int flowTotal(int timeLimit, DistancesMap distances, TunnelMap valves) {
+  List<Map<String, GameState>> states =
+      List.generate(timeLimit + 1, (_) => Map());
+  final starterState = GameState({}, 0, 0, 0);
+  for (TunnelNode nextNode in starterState.unvisited(valves)) {
+    final distance = distances["AA"]![nextNode.name]!;
+    final nextState =
+        starterState.next(nextNode.name, nextNode.flowRate, distance + 1);
+    states[nextState.timeElapsed][nextNode.name] = nextState;
+  }
 
-  final TIME = 1;
-
-  List<Map<WorkerSpots, GameState>> states =
-      List.generate(TIME + 1, (_) => Map());
-  final starterState = GameState({}, 0, 0, 0, [null, null]);
-  states[0][WorkerSpots(["AA", "AA"])] = starterState;
-
-  for (int time in range(TIME + 1)) {
-    final Iterable<String> valveKeys;
-    if (time == 0) {
-      valveKeys = ["AA"];
-    } else {
-      valveKeys = filteredMap.keys;
-    }
-    for (String humanValve in valveKeys) {
-      for (String elephantValue in valveKeys) {
-        final mapKey = WorkerSpots([humanValve, elephantValue]);
-        final maybeState = states[time][mapKey];
-
-        if (maybeState != null) {
-          // If we stay here
-          for (int remainderTime in range(time + 1, TIME + 1)) {
-            final nextState = maybeState.flowTo(remainderTime);
-            final existingNextState = states[remainderTime][mapKey];
-            if (existingNextState == null ||
-                existingNextState.totalFlow < nextState.totalFlow) {
-              states[nextState.timeElapsed][mapKey] = nextState;
-            }
+  for (int time in range(timeLimit + 1)) {
+    for (String valve in valves.keys) {
+      final maybeState = states[time][valve];
+      if (maybeState != null) {
+        // If we stay here
+        for (int remainderTime in range(time + 1, timeLimit + 1)) {
+          final nextState = maybeState.flowTo(remainderTime);
+          final existingNextState = states[remainderTime][valve];
+          if (existingNextState == null ||
+              existingNextState.totalFlow < nextState.totalFlow) {
+            states[nextState.timeElapsed][valve] = nextState;
           }
-          // If we move
-          final unopenedValves = maybeState.unvisited(filteredMap);
-
-          // Build a cumulative list of potential move sets
-          final List<List<TunnelNode>> pendingMoves = [];
-          for (int workerIndex in range(maybeState.workers.length)) {}
-
-          // Apply pending moves
-          for (int index in range(pendingMoves.length)) {
-            final pendingMove = pendingMoves[index];
-            final pendingSpot = pendingSpots[index];
-            if (pendingMove == null) continue;
-            for (int remainderTime in range(time + 1, TIME + 1)) {
-              final nextState = pendingMove.flowTo(remainderTime);
-              final existingNextState = states[remainderTime][pendingSpot];
-              if (existingNextState == null ||
-                  existingNextState.totalFlow < nextState.totalFlow) {
-                states[nextState.timeElapsed][pendingSpot] = nextState;
-              }
-            }
+        }
+        // If we move
+        for (TunnelNode nextNode in maybeState.unvisited(valves)) {
+          final distance = distances[valve]![nextNode.name]!;
+          final nextState =
+              maybeState.next(nextNode.name, nextNode.flowRate, distance + 1);
+          if (nextState.timeElapsed > timeLimit) {
+            continue;
+          }
+          final existingNextState =
+              states[nextState.timeElapsed][nextNode.name];
+          if (existingNextState == null ||
+              existingNextState.totalFlow < nextState.totalFlow) {
+            states[nextState.timeElapsed][nextNode.name] = nextState;
           }
         }
       }
     }
   }
 
-  // for (final entry in states) {
-  //   print(entry);
-  // }
+  final finalValues = states[timeLimit].values.toList();
+  finalValues.sort((a, b) => a.totalFlow > b.totalFlow
+      ? -1
+      : b.totalFlow > a.totalFlow
+          ? 1
+          : 0);
 
-  for (final entry in states[TIME].entries) {
-    print(entry);
+  return finalValues.first.totalFlow;
+}
+
+void main() async {
+  final input = await parseInput('16/input');
+  final map = toMap(input);
+  final distances = toDistances(map);
+  final filteredMap = filterMap(map);
+
+  void filler(List<List<int>> combinations, List<int> data, int start, int end,
+      int index) {
+    if (index == data.length) {
+      combinations.add(data.sublist(0));
+    } else if (start <= end) {
+      data[index] = start;
+      filler(combinations, data, start + 1, end, index + 1);
+      filler(combinations, data, start + 1, end, index);
+    }
   }
 
-  // final finalValues = states[TIME].values.toList();
-  // finalValues.sort((a, b) => a.totalFlow > b.totalFlow
-  //     ? -1
-  //     : b.totalFlow > a.totalFlow
-  //         ? 1
-  //         : 0);
-  // print(finalValues.first.totalFlow);
+  final List<List<int>> combinations = [];
+  final halfSize = (filteredMap.length / 2).ceil();
+  filler(combinations, List.filled(halfSize, 0), 0, filteredMap.keys.length - 1,
+      0);
 
-  // for (TunnelNode nextNode in starterState.unvisited(filteredMap)) {
-  //   final distance = distances["AA"]![nextNode.name]!;
-  //   final nextState =
-  //       starterState.next(nextNode.name, nextNode.flowRate, distance);
-  //   states[nextState.timeElapsed][nextNode.name] = nextState;
-  // }
+  final pairings = combinations.map((indices) {
+    final Map<String, TunnelNode> first = {};
+    final Map<String, TunnelNode> second = {};
+    final entries = filteredMap.entries.toList();
+    for (int idx in range(entries.length)) {
+      final entry = entries[idx];
+      if (indices.contains(idx)) {
+        first[entry.key] = entry.value;
+      } else {
+        second[entry.key] = entry.value;
+      }
+    }
+    return Pair(first, second);
+  }).toList();
+
+  int max = 0;
+  pairings.forEach((pairing) {
+    final time = 26;
+    final total = flowTotal(time, distances, pairing.first) +
+        flowTotal(time, distances, pairing.second);
+    if (total > max) {
+      max = total;
+    }
+  });
+
+  print(max);
 }
