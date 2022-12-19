@@ -1,7 +1,5 @@
-import 'package:equatable/equatable.dart';
-
-import '../utils.dart';
 import './shared.dart';
+import '../utils.dart';
 
 int MAX_TIME = 24;
 
