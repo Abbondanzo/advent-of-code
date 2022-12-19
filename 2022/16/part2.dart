@@ -129,38 +129,10 @@ void main() async {
           }
           // If we move
           final unopenedValves = maybeState.unvisited(filteredMap);
-          final List<GameState?> pendingMoves =
-              List.filled(unopenedValves.length, null);
-          final List<WorkerSpots> pendingSpots =
-              List.filled(unopenedValves.length, mapKey);
 
           // Build a cumulative list of potential move sets
-          for (int workerIndex in range(maybeState.workers.length)) {
-            // Can't move this worker since it's already working
-            if (maybeState.workers[workerIndex] != null) {
-              continue;
-            }
-            for (int valveIndex in range(unopenedValves.length)) {
-              int offset = 1;
-
-              print(unopenedValves.length);
-              final currentState =
-                  pendingMoves[nonOffsetValveIndex] ?? maybeState;
-              final offsetValveIndex =
-                  (nonOffsetValveIndex + workerIndex) % unopenedValves.length;
-              final nextNode = unopenedValves[offsetValveIndex];
-              final workerValve = mapKey.spots[workerIndex];
-              final distance = distances[workerValve]![nextNode.name]!;
-              // Apply work to state
-              pendingMoves[nonOffsetValveIndex] =
-                  currentState.addWork(workerIndex, nextNode, distance + 1);
-              // Update cumulative spot key
-              final newSpots =
-                  pendingSpots[nonOffsetValveIndex].spots.sublist(0);
-              newSpots[workerIndex] = nextNode.name;
-              pendingSpots[nonOffsetValveIndex] = WorkerSpots(newSpots);
-            }
-          }
+          final List<List<TunnelNode>> pendingMoves = [];
+          for (int workerIndex in range(maybeState.workers.length)) {}
 
           // Apply pending moves
           for (int index in range(pendingMoves.length)) {
