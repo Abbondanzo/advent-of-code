@@ -1,8 +1,7 @@
 import '../utils.dart';
 import './shared.dart';
 
-void main() async {
-  final inputList = await parseInput('20/input');
+Input shuffleInput(Input inputList) {
   final indexList = List.generate(inputList.length, (index) => index);
 
   for (int index in range(inputList.length)) {
@@ -17,8 +16,13 @@ void main() async {
       indexList.insert(newIndex, index);
     }
   }
+  return indexList.map((e) => inputList[e]).toList();
+}
 
-  final shuffledList = indexList.map((e) => inputList[e]).toList();
+void main() async {
+  final inputList = await parseInput('20/input');
+  final shuffledList = shuffleInput(inputList);
+
   final indexOfZero = shuffledList.indexOf(0);
   int total = 0;
 
