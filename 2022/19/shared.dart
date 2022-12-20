@@ -1,20 +1,67 @@
+import 'package:equatable/equatable.dart';
+
 import '../utils.dart';
 
-class Blueprint {
-  // ore
-  final int oreRobot;
-  // ore
-  final int clayRobot;
-  // ore/clay
-  final Pair<int, int> obsidianRobot;
-  // ore/obsidian
-  final Pair<int, int> geodeRobot;
+class MaterialCounts extends Equatable {
+  final int ore;
+  final int clay;
+  final int obsidian;
+  final int geode;
 
-  Blueprint(this.oreRobot, this.clayRobot, this.obsidianRobot, this.geodeRobot);
+  late final List<int> list = [ore, clay, obsidian, geode];
+
+  MaterialCounts(this.ore, this.clay, this.obsidian, this.geode);
+
+  @override
+  bool? get stringify => true;
+
+  @override
+  List<Object?> get props => [ore, clay, obsidian, geode];
+
+  operator +(MaterialCounts other) {
+    return MaterialCounts(ore + other.ore, clay + other.clay,
+        obsidian + other.obsidian, geode + other.geode);
+  }
+
+  operator -(MaterialCounts other) {
+    return MaterialCounts(ore - other.ore, clay - other.clay,
+        obsidian - other.obsidian, geode - other.geode);
+  }
+
+  operator *(int multiplier) {
+    return MaterialCounts(ore * multiplier, clay * multiplier,
+        obsidian * multiplier, geode * multiplier);
+  }
+}
+
+typedef CostToOutput = Pair<MaterialCounts, MaterialCounts>;
+
+class Blueprint {
+  // <costs, output>[]
+  final List<CostToOutput> bills;
+  final MaterialCounts maxCosts;
+
+  Blueprint(this.bills) : maxCosts = _maxCosts(bills);
 
   @override
   String toString() {
-    return "Blueprint($oreRobot, $clayRobot, $obsidianRobot, $geodeRobot)";
+    return "Blueprint($bills)";
+  }
+
+  static MaterialCounts _maxCosts(List<CostToOutput> bills) {
+    int maxOre = 0;
+    int maxClay = 0;
+    int maxObsidian = 0;
+    int maxGeodes = 0; // Not that it'll be non-zero
+
+    for (final bill in bills) {
+      if (bill.first.ore > maxOre) maxOre = bill.first.ore;
+      if (bill.first.clay > maxClay) maxClay = bill.first.clay;
+      if (bill.first.obsidian > maxObsidian) maxObsidian = bill.first.obsidian;
+      if (bill.first.geode > maxGeodes) maxGeodes = bill.first.geode;
+    }
+
+    return MaterialCounts(maxOre, maxClay, maxObsidian, maxGeodes);
   }
 }
 
@@ -39,18 +86,29 @@ Future<Input> parseInput(String path) async {
   }
 
   return inputLineList.map((line) {
+    final List<CostToOutput> costs = [];
+
     final oreRobotRaw = parseInts(oreRobotRegExp, line);
     assert(oreRobotRaw.length == 1);
+    costs.add(Pair(
+        MaterialCounts(oreRobotRaw[0], 0, 0, 0), MaterialCounts(1, 0, 0, 0)));
+
     final clayRobotRaw = parseInts(clayRobotRegExp, line);
     assert(clayRobotRaw.length == 1);
+    costs.add(Pair(
+        MaterialCounts(clayRobotRaw[0], 0, 0, 0), MaterialCounts(0, 1, 0, 0)));
+
     final obsidianRobotRaw = parseInts(obsidianRobotRegExp, line);
     assert(obsidianRobotRaw.length == 2);
+    costs.add(Pair(
+        MaterialCounts(obsidianRobotRaw[0], obsidianRobotRaw[1], 0, 0),
+        MaterialCounts(0, 0, 1, 0)));
+
     final geodeRobotRaw = parseInts(geodeRobotRegExp, line);
     assert(geodeRobotRaw.length == 2);
-    return Blueprint(
-        oreRobotRaw[0],
-        clayRobotRaw[0],
-        Pair(obsidianRobotRaw[0], obsidianRobotRaw[1]),
-        Pair(geodeRobotRaw[0], geodeRobotRaw[1]));
+    costs.add(Pair(MaterialCounts(geodeRobotRaw[0], 0, geodeRobotRaw[1], 0),
+        MaterialCounts(0, 0, 0, 1)));
+
+    return Blueprint(costs);
   }).toList();
 }
