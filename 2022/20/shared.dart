@@ -1,5 +1,3 @@
-import 'package:equatable/equatable.dart';
-
 import '../utils.dart';
 
 typedef Input = List<int>;
