@@ -1,181 +1,146 @@
+import 'dart:math';
+
 import './shared.dart';
 import '../utils.dart';
 
-final MAX_TIME = 24;
+final MAX_TIME = 32;
+
+List<Pair<MaterialCounts, MaterialCounts>> bills(
+    Blueprint blueprint, MaterialCounts materials, MaterialCounts robots) {
+  List<Pair<MaterialCounts, MaterialCounts>> options = [];
+
+  for (final i in range(blueprint.bills.length)) {
+    final billIndex = blueprint.bills.length - i - 1;
+    final bill = blueprint.bills[billIndex];
+    final costs = bill.first;
+    final canAfford = range(materials.list.length)
+        .every((index) => materials.list[index] >= costs.list[index]);
+    if (!canAfford) continue;
+    final atMax = range(materials.list.length).every(
+        (index) => materials.list[index] > blueprint.maxCosts.list[index]);
+    if (atMax) continue;
+    options.add(bill);
+  }
+  return options;
+}
+
+MaterialCounts update(MaterialCounts materials, MaterialCounts robots) {
+  return materials + robots;
+}
 
 class GameState {
-  int oreRobots = 1;
-  int clayRobots = 0;
-  int obsidianRobots = 0;
-  int geodeRobots = 0;
+  final MaterialCounts materials;
+  final MaterialCounts robots;
 
-  int ore = 0;
-  int clay = 0;
-  int obsidian = 0;
-  int geodes = 0;
-
-  GameState copy() {
-    final newState = GameState();
-    newState.oreRobots = oreRobots;
-    newState.clayRobots = clayRobots;
-    newState.obsidianRobots = obsidianRobots;
-    newState.geodeRobots = geodeRobots;
-    newState.ore = ore;
-    newState.clay = clay;
-    newState.obsidian = obsidian;
-    newState.geodes = geodes;
-    return newState;
-  }
-
-  int maxGeodes(int iterations) {
-    return geodes + (geodeRobots * iterations);
-  }
+  GameState(this.materials, this.robots);
 
   @override
   String toString() {
-    return "GS($ore+$oreRobots, $clay+$clayRobots, $obsidian+$obsidianRobots, $geodes+$geodeRobots)";
+    return "$materials $robots";
   }
 
-  List<GameState> next(Blueprint blueprint) {
-    final options = _purchaseOptions(blueprint);
-    final nothingCopy = copy();
-    nothingCopy._simulate();
-    options.add(nothingCopy);
-    return options;
+  int potential(int timeRemaining) {
+    final tries = (timeRemaining * (timeRemaining - 1)) ~/ 2;
+    return materials.geode + (robots.geode * timeRemaining) + tries;
   }
 
-  void _simulate() {
-    ore += oreRobots;
-    clay += clayRobots;
-    obsidian += obsidianRobots;
-    geodes += geodeRobots;
+  bool skip(Blueprint blueprint) {
+    return range(materials.list.length).every(
+        (index) => materials.list[index] >= blueprint.maxCosts.list[index]);
   }
 
-  bool shouldSkip(Blueprint blueprint) {
-    int maxOre = 0;
-    int maxClay = 0;
-    int maxObsidian = 0;
-
-    if (blueprint.oreRobot > maxOre) {
-      maxOre = blueprint.oreRobot;
-    }
-    if (blueprint.clayRobot > maxOre) {
-      maxOre = blueprint.clayRobot;
-    }
-    if (blueprint.obsidianRobot.first > maxOre) {
-      maxOre = blueprint.obsidianRobot.first;
-    }
-    if (blueprint.obsidianRobot.second > maxClay) {
-      maxClay = blueprint.obsidianRobot.second;
-    }
-    if (blueprint.geodeRobot.first > maxOre) {
-      maxOre = blueprint.geodeRobot.first;
-    }
-    if (blueprint.geodeRobot.second > maxObsidian) {
-      maxObsidian = blueprint.geodeRobot.second;
-    }
-
-    return ore > maxOre && clay > maxClay && obsidian > maxObsidian;
+  GameState doNothing() {
+    MaterialCounts newMaterials = materials + robots;
+    return GameState(newMaterials, robots);
   }
 
-  List<GameState> _purchaseOptions(Blueprint blueprint) {
-    List<GameState> options = [];
-    if (ore >= blueprint.oreRobot) {
-      final newState = copy();
-      newState.ore -= blueprint.oreRobot;
-      newState._simulate();
-      newState.oreRobots++;
-      options.add(newState);
-    }
-    if (ore >= blueprint.clayRobot) {
-      final newState = copy();
-      newState.ore -= blueprint.clayRobot;
-      newState._simulate();
-      newState.clayRobots++;
-      options.add(newState);
-    }
-    if (ore >= blueprint.obsidianRobot.first &&
-        clay >= blueprint.obsidianRobot.second) {
-      final newState = copy();
-      newState.ore -= blueprint.obsidianRobot.first;
-      newState.clay -= blueprint.obsidianRobot.second;
-      newState._simulate();
-      newState.obsidianRobots++;
-      options.add(newState);
-    }
-    if (ore >= blueprint.geodeRobot.first &&
-        obsidian >= blueprint.geodeRobot.second) {
-      final newState = copy();
-      newState.ore -= blueprint.geodeRobot.first;
-      newState.obsidian -= blueprint.geodeRobot.second;
-      newState._simulate();
-      newState.geodeRobots++;
-      options.add(newState);
+  List<Pair<MaterialCounts, MaterialCounts>> bills(Blueprint blueprint) {
+    List<Pair<MaterialCounts, MaterialCounts>> options = [];
+
+    for (final i in range(blueprint.bills.length)) {
+      final billIndex = blueprint.bills.length - i - 1;
+      final bill = blueprint.bills[billIndex];
+      final costs = bill.first;
+      final canAfford = range(materials.list.length)
+          .every((index) => materials.list[index] >= costs.list[index]);
+      if (!canAfford) continue;
+      // final atMax = billIndex != 3 &&
+      //     range(materials.list.length).every((index) =>
+      //         materials.list[index] > blueprint.maxCosts.list[index]);
+      // if (atMax) continue;
+      options.add(bill);
     }
     return options;
   }
 }
 
-// time elapsed, state
-typedef QueueItem = Pair<int, GameState>;
+int evaluateState(Blueprint blueprint, GameState state) {
+  List<Pair<int, GameState>> queue = [Pair(0, state)];
+  Set<String> seen = {};
 
-QueueItem sortAndRemoveFirst(List<QueueItem> queue, int minGeodes) {
-  queue.removeWhere((element) =>
-      element.second.maxGeodes(MAX_TIME - element.first) < minGeodes);
-  queue.sort((a, b) => b.second
-      .maxGeodes(MAX_TIME - b.first)
-      .compareTo(a.second.maxGeodes(MAX_TIME - a.first)));
-  final toRemove = queue.removeAt(0);
-  return toRemove;
-}
-
-int evaluateStateBFS(Blueprint blueprint, GameState state) {
-  final List<Pair<int, GameState>> queue = [Pair(0, state)];
-  final Set<String> seen = {};
-  final Map<String, bool> skip = {};
   int maxGeodes = 0;
-  int iterations = 0;
+  int curTime = 2;
+
   while (queue.isNotEmpty) {
-    final item = sortAndRemoveFirst(queue, maxGeodes);
-
-    if (item.first == MAX_TIME) {
-      if (item.second.geodes > maxGeodes) {
-        maxGeodes = item.second.geodes;
-        print(maxGeodes);
+    final item = queue.removeAt(0);
+    final timeElapsed = item.first;
+    if (timeElapsed > curTime) {
+      curTime = timeElapsed;
+      queue.sort((a, b) => b.second
+          .potential(MAX_TIME - b.first)
+          .compareTo(a.second.potential(MAX_TIME - a.first)));
+      if (queue.length > 0) {
+        final maxPotential =
+            queue.first.second.potential(MAX_TIME - queue.first.first);
+        queue.removeWhere(
+            ((e) => e.second.potential(MAX_TIME - e.first) < maxPotential));
       }
-      continue;
+      print(curTime);
     }
-
-    final options = item.second.next(blueprint);
-    for (final nextState in options) {
-      final key = nextState.toString();
-      if (!skip.containsKey(key)) {
-        skip[key] = nextState.shouldSkip(blueprint);
+    final currentState = item.second;
+    if (item.first < MAX_TIME) {
+      final billsToExecute = currentState.bills(blueprint);
+      final normalState = currentState.doNothing();
+      List<GameState> options = [];
+      options.add(normalState);
+      for (final bill in billsToExecute) {
+        MaterialCounts nextMaterials = normalState.materials - bill.first;
+        MaterialCounts nextRobots = normalState.robots + bill.second;
+        options.add(GameState(nextMaterials, nextRobots));
       }
-      if (skip[key]!) continue;
-      final nextTime = item.first + 1;
-      if (!seen.contains(key)) {
-        seen.add(key);
-        queue.add(Pair(nextTime, nextState));
+      final timeRemaining = MAX_TIME - timeElapsed - 1;
+      for (final option in options) {
+        final potential = option.potential(timeRemaining);
+        final key = option.toString();
+        if (potential > maxGeodes && !seen.contains(key)) {
+          seen.add(key);
+          queue.add(Pair(timeElapsed + 1, option));
+        }
       }
-    }
-    iterations++;
-    if (iterations > 1000000) {
-      throw Error();
+    } else if (MAX_TIME == timeElapsed) {
+      if (currentState.materials.geode > maxGeodes) {
+        maxGeodes = currentState.materials.geode;
+      }
     }
   }
 
   return maxGeodes;
 }
 
+int evaluateBlueprint(Blueprint blueprint) {
+  // return evaluateState(blueprint, state, 0, {});
+  return evaluateState(blueprint,
+      GameState(MaterialCounts(0, 0, 0, 0), MaterialCounts(1, 0, 0, 0)));
+}
+
 void main() async {
   final input = await parseInput('19/input');
-  int total = 0;
-  for (int idx in [1]) {
+  List<int> totals = [0, 0, 0];
+  for (int idx in [0, 1, 2]) {
     final blueprint = input[idx];
-    final totalGeodes = evaluateStateBFS(blueprint, GameState());
-    total += totalGeodes * (idx + 1);
-    print("${idx + 1}/${input.length} (+$totalGeodes)");
+    final totalGeodes = evaluateBlueprint(blueprint);
+    totals[idx] = totalGeodes;
+    print("${idx + 1}/${3} (+$totalGeodes)");
   }
-  print(total);
+  print(totals[0] * totals[1] * totals[2]);
 }
