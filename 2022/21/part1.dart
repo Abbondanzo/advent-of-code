@@ -1,4 +1,4 @@
-import './shared.dart';
+import "./shared.dart";
 
 int solveMonkey(String monkeyName, Input input) {
   final selectedMonkey = input[monkeyName]!;
@@ -33,7 +33,7 @@ int solveMonkey(String monkeyName, Input input) {
 }
 
 void main() async {
-  final input = await parseInput('21/input');
+  final input = await parseInput("21/input");
   final result = solveMonkey("root", input);
   print(result);
 }

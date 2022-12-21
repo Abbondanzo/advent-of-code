@@ -1,4 +1,4 @@
-import '../utils.dart';
+import "../utils.dart";
 
 typedef Input = List<String>;
 

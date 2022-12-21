@@ -1,4 +1,4 @@
-import './shared.dart';
+import "./shared.dart";
 
 int? solveMonkey(String monkeyName, Input input) {
   if (monkeyName == "humn") return null;
@@ -78,7 +78,7 @@ int solveYell(String monkeyName, Input input, int sum) {
 }
 
 void main() async {
-  final input = await parseInput('21/input');
+  final input = await parseInput("21/input");
   final root = input["root"] as OperationMonkey;
 
   final first = solveMonkey(root.first, input);

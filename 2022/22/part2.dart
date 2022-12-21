@@ -1,5 +1,5 @@
-import './shared.dart';
+import "./shared.dart";
 
 void main() async {
-  final input = await parseInput('22/demo');
+  final input = await parseInput("22/demo");
 }
