@@ -287,8 +287,6 @@ void main() async {
         final offset = REGION_OFFSETS[destinationRegion]!;
         final nextPosition = Coordinate(
             transformedPos.x + offset.x, transformedPos.y + offset.y);
-        print(
-            "$currentRegion $destinationRegion $curX,$curY $transformedPos, $nextPosition");
         final spot = input.tiles[nextPosition.y][nextPosition.x];
         if (spot == ".") {
           curX = nextPosition.x;
