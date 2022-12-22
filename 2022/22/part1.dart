@@ -145,6 +145,5 @@ void main() async {
   final row = curY + 1;
   final col = curX + 1;
 
-  // >89204
   print((1000 * row) + (4 * col) + direction);
 }
