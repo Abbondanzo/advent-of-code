@@ -1,5 +1,5 @@
-import "../utils.dart";
 import "./shared.dart";
+import "../utils.dart";
 
 Coordinate startingPosition(Input input) {
   int rowIndex = 0;
@@ -19,8 +19,10 @@ final DIRECTIONS = [">", "v", "<", "^"];
 int rotateStep(int direction, String rotation) {
   if (rotation == "L") {
     return (direction - 1) % DIRECTIONS.length;
-  } else {
+  } else if (rotation == "R") {
     return (direction + 1) % DIRECTIONS.length;
+  } else {
+    return direction;
   }
 }
 
@@ -39,9 +41,14 @@ Coordinate directionToStepper(int direction) {
   }
 }
 
+String toString(List<List<String>> map) {
+  return map.map((e) => e.join("")).join("\n");
+}
+
 void main() async {
   final input = await parseInput("22/input");
   final start = startingPosition(input);
+  final pathMap = input.tiles.map((row) => row.toList()).toList();
 
   int direction = 0;
   int curX = start.x;
@@ -51,6 +58,8 @@ void main() async {
     final stepper = directionToStepper(direction);
 
     for (int _ in range(instruction.first)) {
+      pathMap[curY][curX] = DIRECTIONS[direction];
+
       final nextX = curX + stepper.x;
       final nextY = curY + stepper.y;
       // Left/right move

@@ -38,6 +38,10 @@ Future<Input> parseInput(String path) async {
         }
         idx++;
       }
+      if (buffer.length > 0) {
+        int number = int.parse(buffer);
+        instructions.add(Pair(number, ""));
+      }
     }
   });
 
