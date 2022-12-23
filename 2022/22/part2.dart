@@ -37,11 +37,6 @@ List<Coordinate> getRegions(Input input, int size) {
   return regions;
 }
 
-// List<Map<String, int>> getRegionMap(
-//     Input input, int size, List<Coordinate> region) {
-//   final outcomes = List.generate(6, (_) => Map());
-// }
-
 final DIRECTIONS = [">", "v", "<", "^"];
 
 int rotateStep(int direction, String rotation) {
@@ -73,221 +68,77 @@ String toString(List<List<String>> map) {
   return map.map((e) => e.join("")).join("\n");
 }
 
-/**
- * 
- * Demo: 
- * 
- *   1
- * 234
- *   56
- * 
- * 4->6: y = size - x, x = 0, rotate R
- * 6->4: x = size, y = size - x, rotate L
- * 
- * 2->6: 
- * 6->2:
- * 
- * 5->2:
- * 2->5:
- * 
- * 5->3:
- * 3->5:
- * 
- * 1->2:
- * 2->1:
- * 
- * 1->3:
- * 3->1:
- * 
- * 1->6:
- * 6->1: 
- * 
- * My input:
- *  12
- *  3
- * 45
- * 6
- *
- * 
- * 2 bottom -> 3: y=x, x=size, R
- * 3 right -> 2: x=y, y=size, L
- * 
- * 2 right -> 5: x=size, y=size-y, RR
- * 5 right -> 2: x=size, y=size-y, RR
- * 
- * 2 top -> 6: x=size-x, y=size, RR
- * 6 bottom -> 2: x=size-x, y=0, RR
- * 
- * 5 bottom -> 6: x=size, y=x, R
- * 6 right -> 5: x=y, y=size, L
- * 
- * 4 left -> 1: x=0, y=size-y, RR
- * 1 left -> 4: x=0, y=size-y, RR
- * 
- * 4 top -> 3: x=0, y=x, R
- * 3 left -> 4: x=y, y=0, L
- * 
- * 1 top -> 6: x=size, y=x, R
- * 6 left -> 1: x=y, y=0, L
- */
-
-// class Transformer {
-//   final int regionFrom;
-//   final int regionTo;
-//   final Coordinate offset;
-//   final Coordinate Function(Coordinate pos) transformPos;
-//   final int Function(int direction) transformDirection;
-
-//   Transformer(this.regionFrom, this.regionTo, this.offset, this.transformPos,
-//       this.transformDirection);
-// }
-
-// final SIZE = 50;
-
-// final TRANSFORMERS = [
-//   Transformer(2, 3, Coordinate(-SIZE, SIZE), (pos) {
-//     return Coordinate(SIZE - 1, pos.y);
-//   }, (direction) {
-//     return rotateStep(direction, "R");
-//   }),
-//   Transformer(3, 2, Coordinate(SIZE, -SIZE), (pos) {
-//     return Coordinate(pos.y, SIZE - 1);
-//   }, (direction) {
-//     return rotateStep(direction, "L");
-//   }),
-//   Transformer(2, 5, Coordinate(-SIZE, SIZE * 2), (pos) {
-//     return Coordinate(SIZE - 1, SIZE - 1 - pos.y);
-//   }, (direction) {
-//     return rotateStep(rotateStep(direction, "L"), "L");
-//   }),
-//   Transformer(5, 2, Coordinate(SIZE, -SIZE * 2), (pos) {
-//     return Coordinate(SIZE - 1, SIZE - 1 - pos.y);
-//   }, (direction) {
-//     return rotateStep(rotateStep(direction, "L"), "L");
-//   }),
-//   Transformer(2, 6, Coordinate(-SIZE * 2, SIZE * 3), (pos) {
-//     return Coordinate(SIZE - 1 - pos.x, SIZE - 1);
-//   }, (direction) {
-//     return rotateStep(rotateStep(direction, "L"), "L");
-//   }),
-//   Transformer(6, 2, Coordinate(SIZE * 2, -SIZE * 3), (pos) {
-//     return Coordinate(SIZE - 1 - pos.x, 0);
-//   }, (direction) {
-//     return rotateStep(rotateStep(direction, "L"), "L");
-//   }),
-//   Transformer(5, 6, Coordinate(-SIZE, SIZE), (pos) {
-//     return Coordinate(SIZE - 1, pos.x);
-//   }, (direction) {
-//     return rotateStep(direction, "R");
-//   }),
-//   Transformer(6, 5, Coordinate(SIZE, -SIZE), (pos) {
-//     return Coordinate(pos.y, SIZE - 1);
-//   }, (direction) {
-//     return rotateStep(direction, "L");
-//   }),
-//   Transformer(4, 1, Coordinate(SIZE, -SIZE * 2), (pos) {
-//     return Coordinate(0, SIZE - 1 - pos.y);
-//   }, (direction) {
-//     return rotateStep(rotateStep(direction, "L"), "L");
-//   }),
-//   Transformer(1, 4, Coordinate(-SIZE, SIZE * 2), (pos) {
-//     return Coordinate(0, SIZE - 1 - pos.y);
-//   }, (direction) {
-//     return rotateStep(rotateStep(direction, "L"), "L");
-//   }),
-//   Transformer(4, 3, Coordinate(SIZE, -SIZE), (pos) {
-//     return Coordinate(0, pos.x);
-//   }, (direction) {
-//     return rotateStep(direction, "R");
-//   }),
-//   Transformer(3, 4, Coordinate(-SIZE, SIZE), (pos) {
-//     return Coordinate(pos.y, 0);
-//   }, (direction) {
-//     return rotateStep(direction, "L");
-//   }),
-//   Transformer(1, 6, Coordinate(-SIZE, SIZE * 3), (pos) {
-//     return Coordinate(SIZE - 1, pos.x);
-//   }, (direction) {
-//     return rotateStep(direction, "R");
-//   }),
-//   Transformer(6, 1, Coordinate(SIZE, -SIZE * 3), (pos) {
-//     return Coordinate(pos.y, 0);
-//   }, (direction) {
-//     return rotateStep(direction, "L");
-//   }),
-// ];
-
-class Transformer2 {
+class Transformer {
   final Coordinate Function(Coordinate pos) transformPos;
   final int Function(int direction) transformDir;
 
-  Transformer2(this.transformPos, this.transformDir);
+  Transformer(this.transformPos, this.transformDir);
 }
 
-Map<String, Transformer2> getTransformerMap(int size) {
-  final basicTransformer = Transformer2(
+Map<String, Transformer> getTransformerMap(int size) {
+  final basicTransformer = Transformer(
       (pos) => Coordinate(pos.x % size, pos.y % size),
       (direction) => direction);
   return {
-    ">>": Transformer2((pos) {
+    ">>": Transformer((pos) {
       return Coordinate(size - 1, size - 1 - (pos.y % size));
     }, (direction) {
       return rotateStep(rotateStep(direction, "L"), "L");
     }),
-    ">^": Transformer2((pos) {
+    ">^": Transformer((pos) {
       return Coordinate(size - 1 - (pos.y % size), 0);
     }, (direction) {
       return rotateStep(direction, "R");
     }),
-    ">v": Transformer2((pos) {
+    ">v": Transformer((pos) {
       return Coordinate(pos.y % size, size - 1);
     }, (direction) {
       return rotateStep(direction, "L");
     }),
     "><": basicTransformer,
-    "^^": Transformer2((pos) {
+    "^^": Transformer((pos) {
       return Coordinate(size - 1 - (pos.x % size), 0);
     }, (direction) {
       return rotateStep(rotateStep(direction, "L"), "L");
     }),
-    "^>": Transformer2((pos) {
+    "^>": Transformer((pos) {
       return Coordinate(size - 1, size - 1 - (pos.x % size));
     }, (direction) {
       return rotateStep(direction, "L");
     }),
-    "^<": Transformer2((pos) {
+    "^<": Transformer((pos) {
       return Coordinate(0, pos.x % size);
     }, (direction) {
       return rotateStep(direction, "R");
     }),
     "^v": basicTransformer,
-    "<<": Transformer2((pos) {
+    "<<": Transformer((pos) {
       return Coordinate(0, size - 1 - (pos.y % size));
     }, (direction) {
       return rotateStep(rotateStep(direction, "R"), "R");
     }),
-    "<^": Transformer2((pos) {
+    "<^": Transformer((pos) {
       return Coordinate(pos.y % size, 0);
     }, (direction) {
       return rotateStep(direction, "L");
     }),
-    "<v": Transformer2((pos) {
+    "<v": Transformer((pos) {
       return Coordinate(size - 1 - (pos.y % size), size - 1);
     }, (direction) {
       return rotateStep(direction, "R");
     }),
     "<>": basicTransformer,
-    "vv": Transformer2((pos) {
+    "vv": Transformer((pos) {
       return Coordinate(size - 1 - (pos.x % size), size - 1);
     }, (direction) {
       return rotateStep(rotateStep(direction, "R"), "R");
     }),
-    "v>": Transformer2((pos) {
+    "v>": Transformer((pos) {
       return Coordinate(size - 1, pos.x % size);
     }, (direction) {
       return rotateStep(direction, "R");
     }),
-    "v<": Transformer2((pos) {
+    "v<": Transformer((pos) {
       return Coordinate(0, size - 1 - (pos.x % size));
     }, (direction) {
       return rotateStep(direction, "L");
@@ -416,7 +267,8 @@ void main() async {
         seenTransformers.add(transformerKey);
         final transformer = transformers[transformerKey]!;
 
-        final transformedPos = transformer.transformPos(Coordinate(curX, curY));
+        final transformedPos =
+            transformer.transformPos(Coordinate(nextX, nextY));
         final offset = regions[destinationRegion - 1];
         final nextPosition = Coordinate(
             transformedPos.x + offset.x, transformedPos.y + offset.y);
@@ -440,8 +292,5 @@ void main() async {
   final row = curY + 1;
   final col = curX + 1;
 
-  // <138191, >24253
-  print(toString(pathMap));
-  print(seenTransformers);
   print((1000 * row) + (4 * col) + direction);
 }
