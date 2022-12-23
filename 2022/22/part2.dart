@@ -296,7 +296,15 @@ Map<String, Transformer2> getTransformerMap(int size) {
   };
 }
 
-final Map<int, Map<String, int>> INPUT_REGION_MAP = {
+typedef RegionMap = Map<int, Map<String, int>>;
+
+/**
+ *  12
+ *  3
+ * 45
+ * 6
+ */
+final RegionMap INPUT_REGION_MAP = {
   1: {"^": 6, "<": 4},
   2: {
     ">": 5,
@@ -315,6 +323,20 @@ final Map<int, Map<String, int>> INPUT_REGION_MAP = {
   6: {"v": 2, ">": 5, "<": 1},
 };
 
+/**
+ *   1
+ * 234
+ *   56
+ */
+final RegionMap DEMO_REGION_MAP = {
+  1: {"<": 3, "^": 2, ">": 6},
+  2: {"^": 1, "<": 6, "v": 5},
+  3: {"^": 1, "v": 5},
+  4: {">": 6},
+  5: {"<": 3, "v": 2},
+  6: {"^": 4, ">": 1, "v": 2}
+};
+
 int getRegion(Coordinate spot, int size, List<Coordinate> regions) {
   final index = regions.indexWhere((region) {
     return region.x <= spot.x &&
@@ -331,19 +353,22 @@ void main() async {
 
   Input input;
   int size;
+  RegionMap regionMap;
 
   if (useDemo) {
     input = await parseInput("22/demo");
     size = 4;
+    regionMap = DEMO_REGION_MAP;
   } else {
     input = await parseInput("22/input");
     size = 50;
+    regionMap = INPUT_REGION_MAP;
   }
 
   final start = startingPosition(input);
   final regions = getRegions(input, size);
   final transformers = getTransformerMap(size);
-
+  final Set<String> seenTransformers = {};
   final pathMap = input.tiles.map((row) => row.toList()).toList();
 
   int direction = 0;
@@ -381,15 +406,14 @@ void main() async {
         final currentRegion = getRegion(Coordinate(curX, curY), size, regions);
         final directionStr = DIRECTIONS[direction];
 
-        final destinationRegion =
-            INPUT_REGION_MAP[currentRegion]![directionStr]!;
-        final otherDirectionEntries =
-            INPUT_REGION_MAP[destinationRegion]!.entries;
+        final destinationRegion = regionMap[currentRegion]![directionStr]!;
+        final otherDirectionEntries = regionMap[destinationRegion]!.entries;
         final otherDirectionStr = otherDirectionEntries
             .firstWhere((e) => e.value == currentRegion)
             .key;
 
         final transformerKey = "$directionStr$otherDirectionStr";
+        seenTransformers.add(transformerKey);
         final transformer = transformers[transformerKey]!;
 
         final transformedPos = transformer.transformPos(Coordinate(curX, curY));
@@ -417,5 +441,7 @@ void main() async {
   final col = curX + 1;
 
   // <138191, >24253
+  print(toString(pathMap));
+  print(seenTransformers);
   print((1000 * row) + (4 * col) + direction);
 }
