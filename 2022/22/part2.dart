@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import "./shared.dart";
 import "../utils.dart";
 
@@ -15,6 +13,34 @@ Coordinate startingPosition(Input input) {
   }
   throw Error();
 }
+
+List<Coordinate> getRegions(Input input, int size) {
+  List<Coordinate> regions = [];
+  for (int y = 0; y < 4; y++) {
+    final yCoord = y * size;
+    if (yCoord >= input.tiles.length) {
+      break;
+    }
+    final row = input.tiles[yCoord];
+    for (int x = 0; x < 4; x++) {
+      final xCoord = x * size;
+      if (xCoord >= row.length) {
+        break;
+      }
+      final spot = row[xCoord];
+      if (spot != " ") {
+        regions.add(Coordinate(xCoord, yCoord));
+      }
+    }
+  }
+  assert(regions.length == 6);
+  return regions;
+}
+
+// List<Map<String, int>> getRegionMap(
+//     Input input, int size, List<Coordinate> region) {
+//   final outcomes = List.generate(6, (_) => Map());
+// }
 
 final DIRECTIONS = [">", "v", "<", "^"];
 
@@ -105,93 +131,172 @@ String toString(List<List<String>> map) {
  * 6 left -> 1: x=y, y=0, L
  */
 
-class Transformer {
-  final int regionFrom;
-  final int regionTo;
-  final Coordinate offset;
-  final Coordinate Function(Coordinate pos) transformPos;
-  final int Function(int direction) transformDirection;
+// class Transformer {
+//   final int regionFrom;
+//   final int regionTo;
+//   final Coordinate offset;
+//   final Coordinate Function(Coordinate pos) transformPos;
+//   final int Function(int direction) transformDirection;
 
-  Transformer(this.regionFrom, this.regionTo, this.offset, this.transformPos,
-      this.transformDirection);
+//   Transformer(this.regionFrom, this.regionTo, this.offset, this.transformPos,
+//       this.transformDirection);
+// }
+
+// final SIZE = 50;
+
+// final TRANSFORMERS = [
+//   Transformer(2, 3, Coordinate(-SIZE, SIZE), (pos) {
+//     return Coordinate(SIZE - 1, pos.y);
+//   }, (direction) {
+//     return rotateStep(direction, "R");
+//   }),
+//   Transformer(3, 2, Coordinate(SIZE, -SIZE), (pos) {
+//     return Coordinate(pos.y, SIZE - 1);
+//   }, (direction) {
+//     return rotateStep(direction, "L");
+//   }),
+//   Transformer(2, 5, Coordinate(-SIZE, SIZE * 2), (pos) {
+//     return Coordinate(SIZE - 1, SIZE - 1 - pos.y);
+//   }, (direction) {
+//     return rotateStep(rotateStep(direction, "L"), "L");
+//   }),
+//   Transformer(5, 2, Coordinate(SIZE, -SIZE * 2), (pos) {
+//     return Coordinate(SIZE - 1, SIZE - 1 - pos.y);
+//   }, (direction) {
+//     return rotateStep(rotateStep(direction, "L"), "L");
+//   }),
+//   Transformer(2, 6, Coordinate(-SIZE * 2, SIZE * 3), (pos) {
+//     return Coordinate(SIZE - 1 - pos.x, SIZE - 1);
+//   }, (direction) {
+//     return rotateStep(rotateStep(direction, "L"), "L");
+//   }),
+//   Transformer(6, 2, Coordinate(SIZE * 2, -SIZE * 3), (pos) {
+//     return Coordinate(SIZE - 1 - pos.x, 0);
+//   }, (direction) {
+//     return rotateStep(rotateStep(direction, "L"), "L");
+//   }),
+//   Transformer(5, 6, Coordinate(-SIZE, SIZE), (pos) {
+//     return Coordinate(SIZE - 1, pos.x);
+//   }, (direction) {
+//     return rotateStep(direction, "R");
+//   }),
+//   Transformer(6, 5, Coordinate(SIZE, -SIZE), (pos) {
+//     return Coordinate(pos.y, SIZE - 1);
+//   }, (direction) {
+//     return rotateStep(direction, "L");
+//   }),
+//   Transformer(4, 1, Coordinate(SIZE, -SIZE * 2), (pos) {
+//     return Coordinate(0, SIZE - 1 - pos.y);
+//   }, (direction) {
+//     return rotateStep(rotateStep(direction, "L"), "L");
+//   }),
+//   Transformer(1, 4, Coordinate(-SIZE, SIZE * 2), (pos) {
+//     return Coordinate(0, SIZE - 1 - pos.y);
+//   }, (direction) {
+//     return rotateStep(rotateStep(direction, "L"), "L");
+//   }),
+//   Transformer(4, 3, Coordinate(SIZE, -SIZE), (pos) {
+//     return Coordinate(0, pos.x);
+//   }, (direction) {
+//     return rotateStep(direction, "R");
+//   }),
+//   Transformer(3, 4, Coordinate(-SIZE, SIZE), (pos) {
+//     return Coordinate(pos.y, 0);
+//   }, (direction) {
+//     return rotateStep(direction, "L");
+//   }),
+//   Transformer(1, 6, Coordinate(-SIZE, SIZE * 3), (pos) {
+//     return Coordinate(SIZE - 1, pos.x);
+//   }, (direction) {
+//     return rotateStep(direction, "R");
+//   }),
+//   Transformer(6, 1, Coordinate(SIZE, -SIZE * 3), (pos) {
+//     return Coordinate(pos.y, 0);
+//   }, (direction) {
+//     return rotateStep(direction, "L");
+//   }),
+// ];
+
+class Transformer2 {
+  final Coordinate Function(Coordinate pos) transformPos;
+  final int Function(int direction) transformDir;
+
+  Transformer2(this.transformPos, this.transformDir);
 }
 
-final SIZE = 50;
+Map<String, Transformer2> getTransformerMap(int size) {
+  final basicTransformer = Transformer2(
+      (pos) => Coordinate(pos.x % size, pos.y % size),
+      (direction) => direction);
+  return {
+    ">>": Transformer2((pos) {
+      return Coordinate(size - 1, size - 1 - (pos.y % size));
+    }, (direction) {
+      return rotateStep(rotateStep(direction, "L"), "L");
+    }),
+    ">^": Transformer2((pos) {
+      return Coordinate(size - 1 - (pos.y % size), 0);
+    }, (direction) {
+      return rotateStep(direction, "R");
+    }),
+    ">v": Transformer2((pos) {
+      return Coordinate(pos.y % size, size - 1);
+    }, (direction) {
+      return rotateStep(direction, "L");
+    }),
+    "><": basicTransformer,
+    "^^": Transformer2((pos) {
+      return Coordinate(size - 1 - (pos.x % size), 0);
+    }, (direction) {
+      return rotateStep(rotateStep(direction, "L"), "L");
+    }),
+    "^>": Transformer2((pos) {
+      return Coordinate(size - 1, size - 1 - (pos.x % size));
+    }, (direction) {
+      return rotateStep(direction, "L");
+    }),
+    "^<": Transformer2((pos) {
+      return Coordinate(0, pos.x % size);
+    }, (direction) {
+      return rotateStep(direction, "R");
+    }),
+    "^v": basicTransformer,
+    "<<": Transformer2((pos) {
+      return Coordinate(0, size - 1 - (pos.y % size));
+    }, (direction) {
+      return rotateStep(rotateStep(direction, "R"), "R");
+    }),
+    "<^": Transformer2((pos) {
+      return Coordinate(pos.y % size, 0);
+    }, (direction) {
+      return rotateStep(direction, "L");
+    }),
+    "<v": Transformer2((pos) {
+      return Coordinate(size - 1 - (pos.y % size), size - 1);
+    }, (direction) {
+      return rotateStep(direction, "R");
+    }),
+    "<>": basicTransformer,
+    "vv": Transformer2((pos) {
+      return Coordinate(size - 1 - (pos.x % size), size - 1);
+    }, (direction) {
+      return rotateStep(rotateStep(direction, "R"), "R");
+    }),
+    "v>": Transformer2((pos) {
+      return Coordinate(size - 1, pos.x % size);
+    }, (direction) {
+      return rotateStep(direction, "R");
+    }),
+    "v<": Transformer2((pos) {
+      return Coordinate(0, size - 1 - (pos.x % size));
+    }, (direction) {
+      return rotateStep(direction, "L");
+    }),
+    "v^": basicTransformer,
+  };
+}
 
-final TRANSFORMERS = [
-  Transformer(2, 3, Coordinate(-SIZE, SIZE), (pos) {
-    return Coordinate(SIZE - 1, pos.y);
-  }, (direction) {
-    return rotateStep(direction, "R");
-  }),
-  Transformer(3, 2, Coordinate(SIZE, -SIZE), (pos) {
-    return Coordinate(pos.y, SIZE - 1);
-  }, (direction) {
-    return rotateStep(direction, "L");
-  }),
-  Transformer(2, 5, Coordinate(-SIZE, SIZE * 2), (pos) {
-    return Coordinate(SIZE - 1, SIZE - 1 - pos.y);
-  }, (direction) {
-    return rotateStep(rotateStep(direction, "L"), "L");
-  }),
-  Transformer(5, 2, Coordinate(SIZE, -SIZE * 2), (pos) {
-    return Coordinate(SIZE - 1, SIZE - 1 - pos.y);
-  }, (direction) {
-    return rotateStep(rotateStep(direction, "L"), "L");
-  }),
-  Transformer(2, 6, Coordinate(-SIZE * 2, SIZE * 3), (pos) {
-    return Coordinate(SIZE - 1 - pos.x, SIZE - 1);
-  }, (direction) {
-    return rotateStep(rotateStep(direction, "L"), "L");
-  }),
-  Transformer(6, 2, Coordinate(SIZE * 2, -SIZE * 3), (pos) {
-    return Coordinate(SIZE - 1 - pos.x, 0);
-  }, (direction) {
-    return rotateStep(rotateStep(direction, "L"), "L");
-  }),
-  Transformer(5, 6, Coordinate(-SIZE, SIZE), (pos) {
-    return Coordinate(SIZE - 1, pos.x);
-  }, (direction) {
-    return rotateStep(direction, "R");
-  }),
-  Transformer(6, 5, Coordinate(SIZE, -SIZE), (pos) {
-    return Coordinate(pos.y, SIZE - 1);
-  }, (direction) {
-    return rotateStep(direction, "L");
-  }),
-  Transformer(4, 1, Coordinate(SIZE, -SIZE * 2), (pos) {
-    return Coordinate(0, SIZE - 1 - pos.y);
-  }, (direction) {
-    return rotateStep(rotateStep(direction, "L"), "L");
-  }),
-  Transformer(1, 4, Coordinate(-SIZE, SIZE * 2), (pos) {
-    return Coordinate(0, SIZE - 1 - pos.y);
-  }, (direction) {
-    return rotateStep(rotateStep(direction, "L"), "L");
-  }),
-  Transformer(4, 3, Coordinate(SIZE, -SIZE), (pos) {
-    return Coordinate(0, pos.x);
-  }, (direction) {
-    return rotateStep(direction, "R");
-  }),
-  Transformer(3, 4, Coordinate(-SIZE, SIZE), (pos) {
-    return Coordinate(pos.y, 0);
-  }, (direction) {
-    return rotateStep(direction, "L");
-  }),
-  Transformer(1, 6, Coordinate(-SIZE, SIZE * 3), (pos) {
-    return Coordinate(SIZE - 1, pos.x);
-  }, (direction) {
-    return rotateStep(direction, "R");
-  }),
-  Transformer(6, 1, Coordinate(SIZE, -SIZE * 3), (pos) {
-    return Coordinate(pos.y, 0);
-  }, (direction) {
-    return rotateStep(direction, "L");
-  }),
-];
-
-final Map<int, Map<String, int>> REGION_MAP = {
+final Map<int, Map<String, int>> INPUT_REGION_MAP = {
   1: {"^": 6, "<": 4},
   2: {
     ">": 5,
@@ -210,39 +315,35 @@ final Map<int, Map<String, int>> REGION_MAP = {
   6: {"v": 2, ">": 5, "<": 1},
 };
 
-final Map<int, Coordinate> REGION_OFFSETS = {
-  1: Coordinate(SIZE, 0),
-  2: Coordinate(SIZE * 2, 0),
-  3: Coordinate(SIZE, SIZE),
-  4: Coordinate(0, SIZE * 2),
-  5: Coordinate(SIZE, SIZE * 2),
-  6: Coordinate(0, SIZE * 3)
-};
-
-int getRegion(int curX, int curY) {
-  if (curY < SIZE) {
-    if (curX >= SIZE * 2) {
-      return 2;
-    } else {
-      return 1;
-    }
-  }
-  if (curY < SIZE * 2) {
-    return 3;
-  }
-  if (curY < SIZE * 3) {
-    if (curX >= SIZE) {
-      return 5;
-    } else {
-      return 4;
-    }
-  }
-  return 6;
+int getRegion(Coordinate spot, int size, List<Coordinate> regions) {
+  final index = regions.indexWhere((region) {
+    return region.x <= spot.x &&
+        region.y <= spot.y &&
+        region.x + size > spot.x &&
+        region.y + size > spot.y;
+  });
+  assert(index >= 0);
+  return index + 1;
 }
 
 void main() async {
-  final input = await parseInput("22/input");
+  final useDemo = false;
+
+  Input input;
+  int size;
+
+  if (useDemo) {
+    input = await parseInput("22/demo");
+    size = 4;
+  } else {
+    input = await parseInput("22/input");
+    size = 50;
+  }
+
   final start = startingPosition(input);
+  final regions = getRegions(input, size);
+  final transformers = getTransformerMap(size);
+
   final pathMap = input.tiles.map((row) => row.toList()).toList();
 
   int direction = 0;
@@ -266,44 +367,55 @@ void main() async {
         } else if (nextSpot == ".") {
           curX = nextX;
           curY = nextY;
+        } else if (nextSpot == " ") {
+          throw RangeError("No spot");
         } else {
           throw ErrorMessage("Not supposed to happen");
         }
-        direction = rotateStep(direction, instruction.second);
       } catch (e) {
-        if (e is ErrorMessage) {
+        if (!(e is RangeError)) {
           throw e;
         }
 
         // We are out of bounds. Compute this region and find its transformer
-        int currentRegion = getRegion(curX, curY);
-        String directionStr = DIRECTIONS[direction];
-        int destinationRegion = REGION_MAP[currentRegion]![directionStr]!;
-        final transformer = TRANSFORMERS.firstWhere((element) =>
-            element.regionFrom == currentRegion &&
-            element.regionTo == destinationRegion);
-        final transformedPos =
-            transformer.transformPos(Coordinate(curX % SIZE, curY % SIZE));
-        final offset = REGION_OFFSETS[destinationRegion]!;
+        final currentRegion = getRegion(Coordinate(curX, curY), size, regions);
+        final directionStr = DIRECTIONS[direction];
+
+        final destinationRegion =
+            INPUT_REGION_MAP[currentRegion]![directionStr]!;
+        final otherDirectionEntries =
+            INPUT_REGION_MAP[destinationRegion]!.entries;
+        final otherDirectionStr = otherDirectionEntries
+            .firstWhere((e) => e.value == currentRegion)
+            .key;
+
+        final transformerKey = "$directionStr$otherDirectionStr";
+        final transformer = transformers[transformerKey]!;
+
+        final transformedPos = transformer.transformPos(Coordinate(curX, curY));
+        final offset = regions[destinationRegion - 1];
         final nextPosition = Coordinate(
             transformedPos.x + offset.x, transformedPos.y + offset.y);
         final spot = input.tiles[nextPosition.y][nextPosition.x];
         if (spot == ".") {
           curX = nextPosition.x;
           curY = nextPosition.y;
-          direction = transformer.transformDirection(direction);
+          direction = transformer.transformDir(direction);
+          stepper = directionToStepper(direction);
         } else if (spot == "#") {
           break;
         } else {
-          throw Error();
+          throw ErrorMessage("Not supposed to happen");
         }
       }
     }
+
+    direction = rotateStep(direction, instruction.second);
   }
 
   final row = curY + 1;
   final col = curX + 1;
 
-  // <138191
+  // <138191, >24253
   print((1000 * row) + (4 * col) + direction);
 }
