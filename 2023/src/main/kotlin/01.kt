@@ -1,6 +1,6 @@
 import Utils.readFileAsList
 
-fun partOne(input: List<String>): Int {
+private fun partOne(input: List<String>): Int {
     val digitRegex = Regex("\\d")
     var total = 0
     input.forEach {
@@ -15,7 +15,7 @@ fun partOne(input: List<String>): Int {
     return total
 }
 
-fun replaceWords(match: String): Int {
+private fun replaceWords(match: String): Int {
     return when (match) {
         "one" -> 1
         "two" -> 2
@@ -30,7 +30,7 @@ fun replaceWords(match: String): Int {
     }
 }
 
-fun partTwo(input: List<String>): Int {
+private fun partTwo(input: List<String>): Int {
     val wordRegex = Regex("(?=(one|two|three|four|five|six|seven|eight|nine|\\d))")
     var total = 0
     input.forEach {
