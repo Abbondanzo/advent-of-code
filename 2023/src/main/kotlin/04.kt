@@ -1,7 +1,7 @@
 import Utils.readFileAsList
 import kotlin.math.pow
 
-val DIGIT_REGEX = Regex("\\d+")
+private val DIGIT_REGEX = Regex("\\d+")
 
 private fun getWins(row: String): Int {
     val split = row.split(":")[1].split("|")

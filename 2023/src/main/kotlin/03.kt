@@ -49,7 +49,7 @@ private fun getPartNumbers(input: List<String>, row: Int, col: Int): MutableList
             val char = input.getOrNull(r)?.getOrNull(c) ?: continue
             if (char.isDigit()) {
                 builder.append(char)
-                isAdjacent = isAdjacent || (c in (col - 1)..(col+1))
+                isAdjacent = isAdjacent || (c in (col - 1)..(col + 1))
             } else if (builder.isNotEmpty()) {
                 if (isAdjacent) {
                     partNumbers.add(builder.toString().toInt())
