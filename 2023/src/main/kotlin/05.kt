@@ -4,14 +4,18 @@ data class Range(
     val sourceStart: Long,
     val destinationStart: Long,
     val gap: Long,
-)
+) {
+    val range by lazy {
+        destinationStart..<(destinationStart + gap)
+    }
+}
 
 data class RangeMap(
     val ranges: List<Range>,
 ) {
     fun mapValue(input: Long): Long {
         for (range in ranges) {
-            if (input in range.destinationStart..<(range.destinationStart + range.gap)) {
+            if (input in range.range) {
                 val toAdd = range.sourceStart - range.destinationStart
                 return input + toAdd
             }
@@ -22,16 +26,6 @@ data class RangeMap(
 
 private fun getSeeds(line: String): List<Long> {
     return line.split(":")[1].split(" ").map(String::trim).filter(String::isNotEmpty).map(String::toLong)
-}
-
-private fun getSeedRanges(line: String): List<LongRange> {
-    val seeds = getSeeds(line)
-    val ranges = mutableListOf<LongRange>()
-    for (i in seeds.indices step 2) {
-        val range = seeds[i]..<(seeds[i] + seeds[i + 1])
-        ranges.add(range)
-    }
-    return ranges
 }
 
 private fun getRangeMaps(input: List<String>): List<RangeMap> {
@@ -69,6 +63,16 @@ private fun partOne(seeds: List<Long>, rangeMaps: List<RangeMap>): Long {
         }
     }
     return lowest!!
+}
+
+private fun getSeedRanges(line: String): List<LongRange> {
+    val seeds = getSeeds(line)
+    val ranges = mutableListOf<LongRange>()
+    for (i in seeds.indices step 2) {
+        val range = seeds[i]..<(seeds[i] + seeds[i + 1])
+        ranges.add(range)
+    }
+    return ranges
 }
 
 private fun partTwo(seeds: List<LongRange>, rangeMaps: List<RangeMap>): Long {
