@@ -75,7 +75,7 @@ private fun partTwo(seeds: List<LongRange>, rangeMaps: List<RangeMap>): Long {
     var lowest: Long? = null
 
     for ((index, range) in seeds.withIndex()) {
-        println("Processing $index $range")
+        println("Processing $range")
 
         for (seed in range) {
             var cur = seed
@@ -86,7 +86,8 @@ private fun partTwo(seeds: List<LongRange>, rangeMaps: List<RangeMap>): Long {
                 lowest = cur
             }
         }
-        println("Done ${index + 1}/${seeds.size}")
+
+        println("Done ${index + 1}/${seeds.size}. Lowest $lowest")
     }
 
     return lowest!!
