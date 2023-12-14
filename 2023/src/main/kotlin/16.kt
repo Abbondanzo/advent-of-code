@@ -9,7 +9,7 @@ private fun partTwo(input: List<String>) {
 }
 
 fun main() {
-  val input = readFileAsList("15/demo").map(String::trim).filter(String::isNotEmpty)
+  val input = readFileAsList("16/demo").map(String::trim).filter(String::isNotEmpty)
   println("Part 1: ${partOne(input)}")
   //    println("Part 2: ${partTwo(input)}")
 }
