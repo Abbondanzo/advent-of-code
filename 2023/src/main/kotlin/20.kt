@@ -13,5 +13,5 @@ private object Day20 {
 fun main() {
   val input = readFileAsList("20/demo").map(String::trim).filter(String::isNotEmpty)
   println("Part 1: ${Day20.partOne(input)}")
-  //    println("Part 2: ${partTwo(input)}")
+  println("Part 2: ${Day20.partTwo(input)}")
 }
