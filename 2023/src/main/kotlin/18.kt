@@ -1,6 +1,6 @@
 import Utils.readFileAsList
 
-private class Day18 {
+private object Day18 {
 
   enum class Direction {
     RIGHT,
@@ -72,6 +72,6 @@ private class Day18 {
 
 fun main() {
   val input = readFileAsList("18/input").map(String::trim).filter(String::isNotEmpty)
-  println("Part 1: ${Day18().findArea(input.map(Day18.InputLine::fromPartOneLine))}")
-  println("Part 2: ${Day18().findArea(input.map(Day18.InputLine::fromPartTwoLine))}")
+  println("Part 1: ${Day18.findArea(input.map(Day18.InputLine::fromPartOneLine))}")
+  println("Part 2: ${Day18.findArea(input.map(Day18.InputLine::fromPartTwoLine))}")
 }
