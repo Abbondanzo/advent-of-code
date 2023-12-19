@@ -138,81 +138,11 @@ private object Day19 {
     }
   }
 
-  fun partTwo(workflows: Map<String, Workflow>): Long {
-    val mutableWorkflows = workflows.toMutableMap()
-    val acceptRanges = mutableMapOf<String, List<Combination>>()
-    fun canProcess(sending: String): Boolean {
-      return sending in "AR" || acceptRanges.containsKey(sending)
-    }
-    while (mutableWorkflows.isNotEmpty()) {
-      val keysToRemove = mutableSetOf<String>()
-      for (entry in mutableWorkflows.entries) {
-        val readyToProcess =
-            entry.value.rules.all { canProcess(it.sendTo) } && canProcess(entry.value.sendTo)
-        if (readyToProcess) {
-          val combinations = mutableListOf<Combination>()
-          var runningStart: Combination? = Combination.DEFAULT
-          for (rule in entry.value.rules) {
-            if (runningStart == null) {
-              break
-            }
-            val (success, fail) = Combination.fromCondition(rule.condition)
-            when (rule.sendTo) {
-              "A" -> {
-                val toSucceed = runningStart.flatten(success)
-                if (toSucceed != null) combinations.add(toSucceed)
-              }
-              "R" -> {
-                // Skip!
-              }
-              else -> {
-                for (otherCombination in acceptRanges[rule.sendTo]!!) {
-                  val toSucceed = success.flatten(otherCombination)
-                  if (toSucceed != null) combinations.add(toSucceed)
-                }
-              }
-            }
-            runningStart = runningStart.flatten(fail)
-          }
-          when (entry.value.sendTo) {
-            "A" -> {
-              if (runningStart != null) {
-                combinations.add(runningStart)
-              }
-            }
-            "R" -> {
-              // Skip!
-            }
-            else -> {
-              if (runningStart != null) {
-                for (otherCombination in acceptRanges[entry.value.sendTo]!!) {
-                  val toSucceed = runningStart.flatten(otherCombination)
-                  if (toSucceed != null) combinations.add(toSucceed)
-                }
-              }
-            }
-          }
-          keysToRemove.add(entry.key)
-          acceptRanges[entry.key] = combinations
-        }
-      }
-      keysToRemove.forEach { mutableWorkflows.remove(it) }
-    }
-    val inRange = acceptRanges["in"]!!
-    var total = 0L
-    for (i in inRange.indices) {
-      total += inRange[i].size()
-      for (j in (i + 1) ..< inRange.size) {
-        val overlap = inRange[i].flatten(inRange[j])
-        if (overlap != null) {
-          total -= overlap.size()
-        }
-      }
-    }
-    return total
-  }
-
-  private fun getCombinations(workflow: String, start: Combination, workflows: Map<String, Workflow>): List<Combination> {
+  private fun getCombinations(
+      workflow: String,
+      start: Combination,
+      workflows: Map<String, Workflow>
+  ): List<Combination> {
     return when (workflow) {
       "A" -> listOf(start)
       "R" -> listOf()
@@ -239,7 +169,7 @@ private object Day19 {
     }
   }
 
-  fun partTwoRecursive(workflows: Map<String, Workflow>): Long {
+  fun partTwo(workflows: Map<String, Workflow>): Long {
     val inRange = getCombinations("in", Combination.DEFAULT, workflows)
     var total = 0L
     for (i in inRange.indices) {
@@ -273,5 +203,5 @@ fun main() {
   }
   val groupedWorkflows = workflows.associateBy { it.name }
   println("Part 1: ${Day19.partOne(groupedWorkflows, ratings)}")
-  println("Part 2: ${Day19.partTwoRecursive(groupedWorkflows)}")
+  println("Part 2: ${Day19.partTwo(groupedWorkflows)}")
 }
