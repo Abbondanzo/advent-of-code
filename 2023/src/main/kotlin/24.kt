@@ -127,7 +127,7 @@ private object Day24 {
                 val newCPosition = c.position + c.velocity * (t1 + t2 + t3)
                 val otherDiff = newCPosition - newBPosition
                 if (diff == otherDiff) {
-                  println("FAN! [$t1 $t2 $t3] $newAPosition $newBPosition $newCPosition")
+                  error("FAN! [$t1 $t2 $t3] $newAPosition $newBPosition $newCPosition")
                 }
               }
             }
@@ -138,8 +138,10 @@ private object Day24 {
   }
 
   fun partTwo(input: List<Hailstone>) {
-    for (i in 1L..10) {
+    var i = 1L
+    while (i < 10000) {
       bruteForce(input, i)
+      i++
     }
   }
 }
