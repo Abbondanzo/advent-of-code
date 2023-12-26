@@ -6,6 +6,10 @@ private object Day23 {
 
   data class Coordinate(val x: Int, val y: Int) {
 
+    override fun toString(): String {
+      return "($x,$y)"
+    }
+
     private fun isWall(input: List<String>, coordinate: Coordinate): Boolean {
       return input[coordinate.y][coordinate.x] == '#'
     }
@@ -43,50 +47,49 @@ private object Day23 {
     }
   }
 
+  private data class Edge(val from: Coordinate, val to: Coordinate)
+
   private fun findLongestPath(input: List<String>, ignoreSlopes: Boolean): Int {
     val start = Coordinate(1, 0)
     val end = Coordinate(input[0].length - 2, input.size - 1)
-    val parents = mutableMapOf<Coordinate, Pair<Coordinate, Int>>()
-    parents[start] = Coordinate(0, 0) to 0
-    fun containsCycle(node: Coordinate, neighbor: Coordinate): Boolean {
-      var cur = parents[node]?.first
-      while (cur != null) {
-        if (cur == neighbor) {
-          return true
-        }
-        cur = parents[cur]?.first
-      }
-      return false
+    val paths = mutableMapOf<Coordinate, MutableList<Set<Coordinate>>>()
+    paths[start] = mutableListOf(setOf(start))
+    fun containsCycle(path: Set<Coordinate>, neighbor: Coordinate): Boolean {
+      return path.contains(neighbor)
     }
-
     val queue = LinkedList<Coordinate>()
     queue.add(start)
     while (queue.isNotEmpty()) {
       val node = queue.poll()
-      val distance = parents[node]?.second ?: 0
+      println("$node ${paths[node]?.size}")
+      val currentPaths = paths[node] ?: mutableListOf()
       for (neighbor in node.getNeighbors(input, ignoreSlopes)) {
-        val maybeParent = parents[neighbor]
-        if (maybeParent == null || (maybeParent.second <= distance && !containsCycle(node, neighbor))) {
-          parents[neighbor] = node to distance + 1
-          queue.add(neighbor)
+        val neighborPaths = paths.getOrPut(neighbor) { mutableListOf() }
+        for (path in currentPaths) {
+          if (!containsCycle(path, neighbor)) {
+            neighborPaths.add(path + neighbor)
+            queue.add(neighbor)
+          }
         }
       }
     }
 
+    val endPaths = paths[end]
+    println(endPaths?.map { it.size })
+
+//    for (edge in paths[Edge(Coordinate(11, 4), Coordinate(11, 3))] ?: setOf()) {
+//      println(edge)
+//    }
+
 //    val toPrint = input.toMutableList()
-//    var cur: Coordinate? = end
-//    var count = 0
-//    while (cur != null) {
-//      val coordinate = cur!!
-//      toPrint[coordinate.y] = toPrint[coordinate.y].replaceRange(coordinate.x, coordinate.x + 1, "${count % 10}")
-//      cur = parents[cur]?.first
-//      count++
+//    for (edge in endPath) {
+//      toPrint[edge.from.y] = toPrint[edge.from.y].replaceRange(edge.from.x, edge.from.x + 1, "O")
 //    }
 //    for (line in toPrint) {
 //      println(line)
 //    }
 
-    return parents[end]!!.second
+    return 0
   }
 
   private fun findLongestPathV2(
@@ -118,6 +121,6 @@ private object Day23 {
 
 fun main() {
   val input = readFileAsList("23/demo").map(String::trim).filter(String::isNotEmpty)
-  println("Part 1: ${Day23.partOne(input)}")
+//  println("Part 1: ${Day23.partOne(input)}")
   println("Part 2: ${Day23.partTwo(input)}")
 }
