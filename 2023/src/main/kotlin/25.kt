@@ -1,4 +1,5 @@
 import Utils.readFileAsList
+import kotlin.random.Random
 
 private object Day25 {
 
@@ -13,10 +14,10 @@ private object Day25 {
     }.associate { it }
   }
 
-  fun parseInput(rawInput: List<String>): Set<Set<String>> {
+  fun parseInput(rawInput: List<String>): Set<Pair<String, String>> {
     val mapping = parseRawInput(rawInput)
     return mapping.flatMap { entry ->
-      entry.value.map { setOf(entry.key, it) }
+      entry.value.map { entry.key to it }
     }.toSet()
   }
 
@@ -30,7 +31,6 @@ private object Day25 {
         groups[0].addAll(connection)
       } else {
         groups.removeAll(matchingGroups)
-        println(connection)
         val flatGroup = matchingGroups.flatten().toMutableSet()
         flatGroup.addAll(connection)
         groups.add(flatGroup)
@@ -39,30 +39,53 @@ private object Day25 {
     return groups.map { it.size }
   }
 
-  private fun partOneHelper(connections: Set<Set<String>>, toRemove: Int): List<List<Int>> {
-    if (toRemove == 0) {
-      return listOf(getGroupSizes(connections))
-    }
-    return connections.flatMap { connection ->
-      if (toRemove == 1) {
-        println(connections.indexOf(connection))
+  private fun partOneHelper(connections: Set<Pair<String, String>>): Pair<Set<Set<String>>, List<Pair<String, String>>> {
+    val vertices = mutableSetOf<Set<String>>()
+    for (connection in connections) {
+      for (node in arrayOf(connection.first, connection.second)) {
+        val hasNode = vertices.find { it.contains(node) } != null
+        if (!hasNode) {
+          vertices.add(setOf(node))
+        }
       }
-      partOneHelper(connections.minusElement(connection), toRemove - 1)
     }
+
+    val edges = connections.toMutableList()
+
+    while (vertices.size > 2) {
+      val randomEdgeIndex = Random.nextInt(edges.size)
+      val randomEdge = edges.removeAt(randomEdgeIndex)
+      val subsetA = vertices.find { it.contains(randomEdge.first) }!!
+      val subsetB = vertices.find { it.contains(randomEdge.second) }!!
+      if (subsetA != subsetB) {
+        vertices.remove(subsetA)
+        vertices.remove(subsetB)
+        val newSubset = subsetA + subsetB
+        vertices.add(newSubset)
+        val edgesToRemove = edges.filter { newSubset.contains(it.first) && newSubset.contains(it.second) }
+        edges.removeAll(edgesToRemove)
+      }
+    }
+
+    return vertices to edges
   }
 
-  fun partOne(connections: Set<Set<String>>) {
-    val results = partOneHelper(connections, 3)
-    println(results.filter { it.size > 1 })
-  }
-
-  fun partTwo(input: List<String>) {
-    // TODO("Not yet implemented")
+  fun partOne(connections: Set<Pair<String, String>>): Int {
+    var tries = 0
+    while (true) {
+      val result = partOneHelper(connections)
+      tries++
+      if (tries % 50 == 0) {
+        println("Random algorithms are slow. $tries tries so far...")
+      }
+      if (result.second.size == 3) {
+        return result.first.map { it.size }.reduce { acc, i -> acc * i }
+      }
+    }
   }
 }
 
 fun main() {
   val input = readFileAsList("25/input").map(String::trim).filter(String::isNotEmpty)
   println("Part 1: ${Day25.partOne(Day25.parseInput(input))}")
-  println("Part 2: ${Day25.partTwo(input)}")
 }
