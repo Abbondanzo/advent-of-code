@@ -4,42 +4,27 @@ import kotlin.random.Random
 private object Day25 {
 
   private fun parseRawInput(rawInput: List<String>): Map<String, Set<String>> {
-    return rawInput.map { line ->
-      line.substringBefore(":") to line
-        .substringAfter(":")
-        .split(" ")
-        .map(String::trim)
-        .filter(String::isNotEmpty)
-        .toSet()
-    }.associate { it }
+    return rawInput
+        .map { line ->
+          line.substringBefore(":") to
+              line
+                  .substringAfter(":")
+                  .split(" ")
+                  .map(String::trim)
+                  .filter(String::isNotEmpty)
+                  .toSet()
+        }
+        .associate { it }
   }
 
   fun parseInput(rawInput: List<String>): Set<Pair<String, String>> {
     val mapping = parseRawInput(rawInput)
-    return mapping.flatMap { entry ->
-      entry.value.map { entry.key to it }
-    }.toSet()
+    return mapping.flatMap { entry -> entry.value.map { entry.key to it } }.toSet()
   }
 
-  private fun getGroupSizes(connections: Set<Set<String>>): List<Int> {
-    val groups = mutableListOf<MutableSet<String>>()
-    for (connection in connections) {
-      val matchingGroups = groups.filter { group -> connection.any { group.contains(it) } }
-      if (matchingGroups.isEmpty()) {
-        groups.add(connection.toMutableSet())
-      } else if (matchingGroups.size == 1) {
-        groups[0].addAll(connection)
-      } else {
-        groups.removeAll(matchingGroups)
-        val flatGroup = matchingGroups.flatten().toMutableSet()
-        flatGroup.addAll(connection)
-        groups.add(flatGroup)
-      }
-    }
-    return groups.map { it.size }
-  }
-
-  private fun partOneHelper(connections: Set<Pair<String, String>>): Pair<Set<Set<String>>, List<Pair<String, String>>> {
+  private fun partOneHelper(
+      connections: Set<Pair<String, String>>
+  ): Pair<Set<Set<String>>, List<Pair<String, String>>> {
     val vertices = mutableSetOf<Set<String>>()
     for (connection in connections) {
       for (node in arrayOf(connection.first, connection.second)) {
@@ -62,7 +47,8 @@ private object Day25 {
         vertices.remove(subsetB)
         val newSubset = subsetA + subsetB
         vertices.add(newSubset)
-        val edgesToRemove = edges.filter { newSubset.contains(it.first) && newSubset.contains(it.second) }
+        val edgesToRemove =
+            edges.filter { newSubset.contains(it.first) && newSubset.contains(it.second) }
         edges.removeAll(edgesToRemove)
       }
     }
