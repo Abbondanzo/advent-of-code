@@ -1,6 +1,5 @@
 import Utils.readFileAsList
-
-data class Pos(val row: Int, val col: Int)
+import Utils.Pos
 
 private fun getStartingPosition(lines: List<String>): Pos {
   for ((rowIdx, row) in lines.withIndex()) {
