@@ -6,4 +6,6 @@ object Utils {
   fun readFileAsList(fileName: String): List<String> {
     return readFile(fileName).split("\n")
   }
+
+  data class Pos(val row: Int, val col: Int)
 }
