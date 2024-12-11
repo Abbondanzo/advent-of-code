@@ -1,6 +1,7 @@
 import Utils.readFileAsList
 
-val regex = Regex("mul\\((\\d+,\\d+)\\)")
+private val regex = Regex("mul\\((\\d+,\\d+)\\)")
+
 private fun partOne(lines: List<String>): Int {
   var total = 0
   for (line in lines) {
@@ -13,7 +14,8 @@ private fun partOne(lines: List<String>): Int {
   return total
 }
 
-val regexTwo = Regex("mul\\((\\d+,\\d+)\\)|don't\\(\\)|do\\(\\)")
+private val regexTwo = Regex("mul\\((\\d+,\\d+)\\)|don't\\(\\)|do\\(\\)")
+
 private fun partTwo(lines: List<String>): Int {
   var total = 0
   var enabled = true

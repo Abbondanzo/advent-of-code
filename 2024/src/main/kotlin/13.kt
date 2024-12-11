@@ -4,7 +4,6 @@ private fun partOne(lines: List<String>): Int {
   return 0
 }
 
-
 private fun partTwo(lines: List<String>): Int {
   return 0
 }

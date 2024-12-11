@@ -3,8 +3,7 @@ import Utils.readFileAsList
 /**
  * An update is valid if none of the numbers before it are in that number's rule set.
  *
- * For example:
- * {1: [2,3], 2:[3]}
+ * For example: {1: [2,3], 2:[3]}
  * - 2 and 3 cannot come before 1
  * - 3 cannot come before 2
  *
@@ -26,9 +25,7 @@ private fun isUpdateValid(rules: Map<Int, Set<Int>>, update: List<Int>): Boolean
   return true
 }
 
-/**
- * Sum the midpoints of all valid rule sets.
- */
+/** Sum the midpoints of all valid rule sets. */
 private fun partOne(rules: Map<Int, Set<Int>>, updates: List<List<Int>>): Int {
   var total = 0
   for (update in updates) {
@@ -62,7 +59,8 @@ private fun fixUpdateOrder(rules: Map<Int, Set<Int>>, update: List<Int>): List<I
       index++
       continue
     }
-    // Move this number before the first offending item in the rules and go back to iterating from the offending
+    // Move this number before the first offending item in the rules and go back to iterating from
+    // the offending
     // number's new spot
     updateCopy.removeAt(index)
     updateCopy.add(firstItemBefore, item)
@@ -71,9 +69,7 @@ private fun fixUpdateOrder(rules: Map<Int, Set<Int>>, update: List<Int>): List<I
   return updateCopy
 }
 
-/**
- * Sum the midpoints of all invalid rule sets after they've been made valid.
- */
+/** Sum the midpoints of all invalid rule sets after they've been made valid. */
 private fun partTwo(rules: Map<Int, Set<Int>>, updates: List<List<Int>>): Int {
   var total = 0
   for (update in updates) {

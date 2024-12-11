@@ -1,5 +1,5 @@
-import Utils.readFileAsList
 import Utils.Pos
+import Utils.readFileAsList
 
 private fun isWithinBounds(lines: List<String>, pos: Pos): Boolean {
   return pos.row in lines.indices && pos.col in lines[0].indices
@@ -32,15 +32,15 @@ private fun partOne(lines: List<String>): Int {
     }
   }
   antiNodes.removeAll { !isWithinBounds(lines, it) }
-//  for ((rowIndex, line) in lines.withIndex()) {
-//    println(line.mapIndexed { colIndex, char ->
-//      if (char == '.' && antiNodes.contains(Pos(rowIndex, colIndex))) {
-//        '#'
-//      } else {
-//        char
-//      }
-//    }.joinToString(""))
-//  }
+  //  for ((rowIndex, line) in lines.withIndex()) {
+  //    println(line.mapIndexed { colIndex, char ->
+  //      if (char == '.' && antiNodes.contains(Pos(rowIndex, colIndex))) {
+  //        '#'
+  //      } else {
+  //        char
+  //      }
+  //    }.joinToString(""))
+  //  }
   return antiNodes.size
 }
 
@@ -82,15 +82,15 @@ private fun partTwo(lines: List<String>): Int {
       }
     }
   }
-//  for ((rowIndex, line) in lines.withIndex()) {
-//    println(line.mapIndexed { colIndex, char ->
-//      if (char == '.' && antiNodes.contains(Pos(rowIndex, colIndex))) {
-//        '#'
-//      } else {
-//        char
-//      }
-//    }.joinToString(""))
-//  }
+  //  for ((rowIndex, line) in lines.withIndex()) {
+  //    println(line.mapIndexed { colIndex, char ->
+  //      if (char == '.' && antiNodes.contains(Pos(rowIndex, colIndex))) {
+  //        '#'
+  //      } else {
+  //        char
+  //      }
+  //    }.joinToString(""))
+  //  }
   return antiNodes.size
 }
 

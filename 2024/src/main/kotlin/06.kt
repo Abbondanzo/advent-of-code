@@ -1,5 +1,5 @@
-import Utils.readFileAsList
 import Utils.Pos
+import Utils.readFileAsList
 
 private fun getStartingPosition(lines: List<String>): Pos {
   for ((rowIdx, row) in lines.withIndex()) {
@@ -58,7 +58,6 @@ private fun partOne(lines: List<String>): Int {
     }
   }
 
-
   return visited.size
 }
 
@@ -75,31 +74,35 @@ private fun partTwo(lines: List<String>): Int {
     if (nextPos.col !in 0..<lines[0].length) {
       break
     }
-//    if (rotations.any { (it.first.row == curPosition.row || it.first.col == curPosition.col) && it.second == rotateRight(direction) }) {
-//      newBlocks.add(nextPos)
-//    }
+    //    if (rotations.any { (it.first.row == curPosition.row || it.first.col == curPosition.col)
+    // && it.second == rotateRight(direction) }) {
+    //      newBlocks.add(nextPos)
+    //    }
     if (lines[nextPos.row][nextPos.col] == '#') {
       rotations.add(curPosition to direction)
       direction = direction.rotateRight()
     } else {
       // Simulate block
       val rotate = direction.rotateRight()
-      val hasRotation = rotations.filter { it.second == rotate }.any { (pos, _) ->
-        when (rotate) {
-          Direction.LEFT -> {
-            pos.row == curPosition.row && pos.col <= curPosition.col
-          }
-          Direction.UP -> {
-            pos.col == curPosition.col && pos.row <= curPosition.row
-          }
-          Direction.RIGHT -> {
-            pos.row == curPosition.row && pos.col >= curPosition.col
-          }
-          Direction.DOWN -> {
-            pos.col == curPosition.col && pos.row >= curPosition.row
-          }
-        }
-      }
+      val hasRotation =
+          rotations
+              .filter { it.second == rotate }
+              .any { (pos, _) ->
+                when (rotate) {
+                  Direction.LEFT -> {
+                    pos.row == curPosition.row && pos.col <= curPosition.col
+                  }
+                  Direction.UP -> {
+                    pos.col == curPosition.col && pos.row <= curPosition.row
+                  }
+                  Direction.RIGHT -> {
+                    pos.row == curPosition.row && pos.col >= curPosition.col
+                  }
+                  Direction.DOWN -> {
+                    pos.col == curPosition.col && pos.row >= curPosition.row
+                  }
+                }
+              }
       if (hasRotation) {
         newBlocks.add(nextPos)
       }
@@ -107,41 +110,47 @@ private fun partTwo(lines: List<String>): Int {
       curPosition = nextPos
     }
   }
-//  curPosition = getStartingPosition(lines)
-//  direction = Pos(-1, 0)
+  //  curPosition = getStartingPosition(lines)
+  //  direction = Pos(-1, 0)
 
-//  while (true) {
-//    val nextPos = Pos(curPosition.row + direction.row, curPosition.col + direction.col)
-//    if (nextPos.row !in lines.indices) {
-//      break
-//    }
-//    if (nextPos.col !in 0..<lines[0].length) {
-//      break
-//    }
-//    if (lines[nextPos.row][nextPos.col] == '#') {
-//      direction = rotateRight(direction)
-//    } else {
-//      if (rotations.any { (it.first.row == curPosition.row || it.first.col == curPosition.col) && it.second == rotateRight(direction) }) {
-//        newBlocks.add(nextPos)
-//      }
-//      curPosition = nextPos
-//    }
-//  }
-//  newBlocks.removeAll {
-//    try {
-//      lines[it.row][it.col] == '#'
-//    } catch (_: Throwable) {
-//      false
-//    }
-//  }
-//  if (newBlocks.contains(getStartingPosition(lines))) {
-//    error("Should not block starting position")
-//  }
+  //  while (true) {
+  //    val nextPos = Pos(curPosition.row + direction.row, curPosition.col + direction.col)
+  //    if (nextPos.row !in lines.indices) {
+  //      break
+  //    }
+  //    if (nextPos.col !in 0..<lines[0].length) {
+  //      break
+  //    }
+  //    if (lines[nextPos.row][nextPos.col] == '#') {
+  //      direction = rotateRight(direction)
+  //    } else {
+  //      if (rotations.any { (it.first.row == curPosition.row || it.first.col == curPosition.col)
+  // && it.second == rotateRight(direction) }) {
+  //        newBlocks.add(nextPos)
+  //      }
+  //      curPosition = nextPos
+  //    }
+  //  }
+  //  newBlocks.removeAll {
+  //    try {
+  //      lines[it.row][it.col] == '#'
+  //    } catch (_: Throwable) {
+  //      false
+  //    }
+  //  }
+  //  if (newBlocks.contains(getStartingPosition(lines))) {
+  //    error("Should not block starting position")
+  //  }
   println(newBlocks)
   return newBlocks.size
 }
 
-private fun partTwoBruteForceHelper(lines: List<String>, startingPosition: Pos, blockingPosition: Pos, startingDirection: Direction): Boolean {
+private fun partTwoBruteForceHelper(
+    lines: List<String>,
+    startingPosition: Pos,
+    blockingPosition: Pos,
+    startingDirection: Direction
+): Boolean {
   var curPosition = startingPosition
   var direction = startingDirection
   val visited = mutableSetOf<Pair<Pos, Direction>>()

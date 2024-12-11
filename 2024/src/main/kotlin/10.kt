@@ -18,12 +18,13 @@ private fun getTrailheadScore(trailhead: Pos, input: List<List<Int>>): Int {
       reachableNines.add(item)
       continue
     }
-    val posToCheck = listOf(
-      Pos(item.row - 1, item.col),
-      Pos(item.row + 1, item.col),
-      Pos(item.row, item.col - 1),
-      Pos(item.row, item.col + 1),
-    )
+    val posToCheck =
+        listOf(
+            Pos(item.row - 1, item.col),
+            Pos(item.row + 1, item.col),
+            Pos(item.row, item.col - 1),
+            Pos(item.row, item.col + 1),
+        )
     posToCheck.forEach { pos ->
       if (pos.row in input.indices && pos.col in input[0].indices) {
         val posValue = input.getIntAt(pos)
@@ -62,12 +63,13 @@ private fun getTrailheadRating(trailhead: Pos, input: List<List<Int>>): Int {
       paths.add(path.toSet())
       continue
     }
-    val posToCheck = listOf(
-      Pos(item.row - 1, item.col),
-      Pos(item.row + 1, item.col),
-      Pos(item.row, item.col - 1),
-      Pos(item.row, item.col + 1),
-    )
+    val posToCheck =
+        listOf(
+            Pos(item.row - 1, item.col),
+            Pos(item.row + 1, item.col),
+            Pos(item.row, item.col - 1),
+            Pos(item.row, item.col + 1),
+        )
     posToCheck.forEach { pos ->
       if (pos.row in input.indices && pos.col in input[0].indices) {
         val posValue = input.getIntAt(pos)

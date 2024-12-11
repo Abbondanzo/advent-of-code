@@ -1,7 +1,8 @@
 import Utils.readFileAsList
 
 /**
- * Starting from the coordinates of a valid 'X', crawl in the provided direction to find "XMAS" in order.
+ * Starting from the coordinates of a valid 'X', crawl in the provided direction to find "XMAS" in
+ * order.
  */
 private fun getXmasFromX(
     row: Int,
@@ -61,14 +62,10 @@ private fun partOne(input: List<List<Char>>): Int {
 }
 
 /**
- * Starting from the coordinates of a valid 'A', check the four corners as alternating pairs. Two opposite corners must
- * be either M or S, they cannot be the same.
+ * Starting from the coordinates of a valid 'A', check the four corners as alternating pairs. Two
+ * opposite corners must be either M or S, they cannot be the same.
  */
-private fun getMasFromA(
-  row: Int,
-  col: Int,
-  input: List<List<Char>>
-): Boolean {
+private fun getMasFromA(row: Int, col: Int, input: List<List<Char>>): Boolean {
   assert(input[row][col] == 'A')
   if (row == 0 || row == input.size - 1) {
     return false

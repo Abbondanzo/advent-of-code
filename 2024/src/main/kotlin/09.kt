@@ -54,7 +54,7 @@ private fun partTwo(diskMap: List<Pair<Int, Int>>): Long {
       for (i in indexToInsert..<indexToInsert + spaceRequired) {
         newList[i] = blockId
       }
-      for (i in oldOffset..<oldOffset+spaceRequired) {
+      for (i in oldOffset..<oldOffset + spaceRequired) {
         newList[i] = -1
       }
     }
