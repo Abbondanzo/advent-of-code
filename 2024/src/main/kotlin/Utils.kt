@@ -4,7 +4,7 @@ object Utils {
   }
 
   fun readFileAsList(fileName: String): List<String> {
-    return readFile(fileName).split("\n")
+    return readFile(fileName).split("\n").map(String::trim)
   }
 
   data class Pos(val row: Int, val col: Int)
