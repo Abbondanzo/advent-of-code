@@ -1,3 +1,4 @@
+import Utils.Direction
 import Utils.Pos
 import Utils.readFileAsList
 
@@ -10,31 +11,6 @@ private fun getStartingPosition(lines: List<String>): Pos {
     }
   }
   error("Could not find start")
-}
-
-enum class Direction {
-  UP,
-  DOWN,
-  LEFT,
-  RIGHT;
-
-  fun rotateRight(): Direction {
-    return when (this) {
-      UP -> RIGHT
-      RIGHT -> DOWN
-      DOWN -> LEFT
-      LEFT -> UP
-    }
-  }
-
-  fun applyOffset(pos: Pos): Pos {
-    return when (this) {
-      UP -> Pos(pos.row - 1, pos.col)
-      DOWN -> Pos(pos.row + 1, pos.col)
-      LEFT -> Pos(pos.row, pos.col - 1)
-      RIGHT -> Pos(pos.row, pos.col + 1)
-    }
-  }
 }
 
 private fun partOne(lines: List<String>): Int {
