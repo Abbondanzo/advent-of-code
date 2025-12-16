@@ -1,6 +1,7 @@
 object Utils {
     private fun readFile(fileName: String): String {
-        return Utils.javaClass.getResource(fileName)?.readText() ?: error("Unable to read $fileName")
+        return Utils.javaClass.getResource(fileName)?.readText()
+            ?: error("Unable to read $fileName")
     }
 
     fun readFileAsList(fileName: String): List<String> {
